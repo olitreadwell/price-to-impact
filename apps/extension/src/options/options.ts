@@ -46,11 +46,15 @@ function createCharityRow(c: Charity, isSelected: boolean): HTMLLabelElement {
   const row = document.createElement('label');
   row.className = 'charity-row';
 
+  const costId = `charity-cost-${c.id}`;
+  const sourceId = `charity-source-${c.id}`;
+
   const radio = document.createElement('input');
   radio.type = 'radio';
   radio.name = 'charity';
   radio.value = c.id;
   radio.checked = isSelected;
+  radio.setAttribute('aria-describedby', `${costId} ${sourceId}`);
   radio.addEventListener('change', async () => {
     if (!radio.checked) return;
     await setPrefs({ selectedCharityId: c.id });
@@ -60,11 +64,11 @@ function createCharityRow(c: Charity, isSelected: boolean): HTMLLabelElement {
 
   const meta = document.createElement('div');
   meta.className = 'meta';
-  meta.append(
-    div('name', c.name),
-    div('cost', `$${c.costPerUnitUsd.toFixed(2)} per ${c.unit}`),
-    div('source', `Source: ${c.source} (as of ${c.asOf})`),
-  );
+  const costEl = div('cost', `$${c.costPerUnitUsd.toFixed(2)} per ${c.unit}`);
+  costEl.id = costId;
+  const sourceEl = div('source', `Source: ${c.source} (as of ${c.asOf})`);
+  sourceEl.id = sourceId;
+  meta.append(div('name', c.name), costEl, sourceEl);
 
   row.append(radio, div('icon', c.icon), meta);
   return row;
