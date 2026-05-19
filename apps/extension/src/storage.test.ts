@@ -127,6 +127,91 @@ describe('setPrefs', () => {
   });
 });
 
+describe('round-up + threshold sanitisation', () => {
+  it('defaults roundupCents to 0 and threshold to $10', async () => {
+    const prefs = await getPrefs();
+    expect(prefs.roundupCents).toBe(0);
+    expect(prefs.activeThresholdCents).toBe(1000);
+  });
+
+  it('rejects unknown thresholds and falls back to $10', async () => {
+    fakeChrome.seed({ activeThresholdCents: 4242 });
+    const prefs = await getPrefs();
+    expect(prefs.activeThresholdCents).toBe(1000);
+  });
+
+  it('accepts the documented thresholds', async () => {
+    for (const cents of [1000, 2000, 5000, 10000]) {
+      fakeChrome.seed({ activeThresholdCents: cents });
+      const prefs = await getPrefs();
+      expect(prefs.activeThresholdCents).toBe(cents);
+    }
+  });
+
+  it('clamps roundupCents to [0, threshold) and floors to int', async () => {
+    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: -5 });
+    expect((await getPrefs()).roundupCents).toBe(0);
+
+    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 99999 });
+    expect((await getPrefs()).roundupCents).toBe(999);
+
+    fakeChrome.seed({ activeThresholdCents: 2000, roundupCents: 4.7 });
+    expect((await getPrefs()).roundupCents).toBe(4);
+
+    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 'nope' });
+    expect((await getPrefs()).roundupCents).toBe(0);
+  });
+});
+
+describe('history sanitisation', () => {
+  it('defaults history to []', async () => {
+    expect((await getPrefs()).history).toEqual([]);
+  });
+
+  it('drops entries that fail shape checks', async () => {
+    fakeChrome.seed({
+      history: [
+        { ts: '2026-05-19T00:00:00Z', usd: 24.99, charityId: 'amf', srcHost: 'AMAZON.com' },
+        { ts: '', usd: 10, charityId: 'amf', srcHost: 'x' }, // bad ts
+        { ts: 'good', usd: -1, charityId: 'amf', srcHost: 'x' }, // bad usd
+        { ts: 'good', usd: 10, charityId: '', srcHost: 'x' }, // bad charity
+        'not-an-object',
+        null,
+      ],
+    });
+    const { history } = await getPrefs();
+    expect(history).toHaveLength(1);
+    expect(history[0]?.srcHost).toBe('amazon.com');
+  });
+
+  it('caps history at 200 entries (oldest fall off)', async () => {
+    const entries = Array.from({ length: 250 }, (_, i) => ({
+      ts: `2026-01-01T00:00:${String(i).padStart(2, '0')}Z`,
+      usd: i + 1,
+      charityId: 'amf',
+      srcHost: 'amazon.com',
+    }));
+    fakeChrome.seed({ history: entries });
+    const { history } = await getPrefs();
+    expect(history).toHaveLength(200);
+    // First entry kept is entries[50] (since first 50 fell off).
+    expect(history[0]?.usd).toBe(51);
+    expect(history.at(-1)?.usd).toBe(250);
+  });
+
+  it('setPrefs persists a new history entry and re-sanitises on read', async () => {
+    const fresh = {
+      ts: '2026-05-19T12:00:00Z',
+      usd: 24.99,
+      charityId: 'amf',
+      srcHost: 'amazon.com',
+    };
+    await setPrefs({ history: [fresh] });
+    const { history } = await getPrefs();
+    expect(history).toEqual([fresh]);
+  });
+});
+
 describe('onPrefsChanged', () => {
   it('fires the handler with the sanitised new value', async () => {
     const spy = vi.fn();
