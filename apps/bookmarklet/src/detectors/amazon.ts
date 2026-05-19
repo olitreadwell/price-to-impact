@@ -1,27 +1,51 @@
-import { parsePriceString } from '@price-to-impact/charities';
+import { parsePriceString, toUsd, type Currency } from '@price-to-impact/charities';
 import type { DetectedPrice, Detector } from '../types';
 
 /**
- * Amazon (.com) price detector.
- *
- * v1 scope is amazon.com only — prices there are always USD, so we don't
- * need FX conversion yet. Other Amazon locales (.co.uk, .de, .com.au) will
- * follow once a static FX table or live rates module lands.
+ * Amazon price detector — works across Amazon's locale TLDs.
  *
  * DOM strategy:
  * 1. Every `.a-price` element is a candidate (cart, product page, search
  *    results, "Buy together" widgets all share this class).
  * 2. The text content of `.a-offscreen` is the canonical price string
- *    ("$24.99") — it is hidden from sighted users but exists for screen
- *    readers and is the most stable parsing target.
+ *    ("$24.99", "£24.99", "AU$24.99") — hidden from sighted users but
+ *    present for screen readers and the most stable parsing target.
  * 3. If `.a-offscreen` is missing, we stitch `.a-price-whole` and
  *    `.a-price-fraction` together as a fallback.
+ *
+ * Currency strategy:
+ * - We map each supported Amazon TLD to its native currency.
+ * - parsePriceString tries to read the currency from the text itself.
+ * - When the text uses a bare `$` (which the parser defaults to USD),
+ *   we override with the TLD's currency — amazon.com.au shows `$24.99`
+ *   but it's really AUD, not USD.
+ * - Explicit non-`$` symbols (`£`, `€`, `AU$`, etc.) trust the text.
+ * - The result is finally converted to USD via the static FX table so
+ *   the contract stays `{ priceUsd, anchorEl }`.
  */
 
-const AMAZON_COM_HOSTNAME_RE = /(?:^|\.)amazon\.com$/;
+const TLD_TO_CURRENCY: Readonly<Record<string, Currency>> = {
+  'amazon.com': 'USD',
+  'amazon.ca': 'CAD',
+  'amazon.com.au': 'AUD',
+  'amazon.co.uk': 'GBP',
+  'amazon.de': 'EUR',
+  'amazon.fr': 'EUR',
+  'amazon.it': 'EUR',
+  'amazon.es': 'EUR',
+  'amazon.nl': 'EUR',
+};
 
-function isAmazonComUrl(url: URL): boolean {
-  return AMAZON_COM_HOSTNAME_RE.test(url.hostname);
+function hostnameToCurrency(hostname: string): Currency | null {
+  const lower = hostname.toLowerCase();
+  for (const [suffix, currency] of Object.entries(TLD_TO_CURRENCY)) {
+    if (lower === suffix || lower.endsWith(`.${suffix}`)) return currency;
+  }
+  return null;
+}
+
+function isAmazonUrl(url: URL): boolean {
+  return hostnameToCurrency(url.hostname) !== null;
 }
 
 function readPriceText(priceEl: Element): string | null {
@@ -36,19 +60,34 @@ function readPriceText(priceEl: Element): string | null {
 }
 
 export const amazonDetector: Detector = {
-  id: 'amazon.com',
-  matches: isAmazonComUrl,
+  id: 'amazon',
+  matches: isAmazonUrl,
   detect(root) {
     const results: DetectedPrice[] = [];
+    const hostname =
+      typeof window === 'undefined' ? '' : window.location.hostname.toLowerCase();
+    const localeCurrency = hostnameToCurrency(hostname);
+
     for (const priceEl of root.querySelectorAll('.a-price')) {
       const text = readPriceText(priceEl);
       if (text === null) continue;
       const parsed = parsePriceString(text);
       if (parsed === null) continue;
-      // TODO: FX conversion. For now, skip non-USD detections so amazon.de
-      // running this bookmarklet won't produce silently wrong numbers.
-      if (parsed.currency !== 'USD') continue;
-      results.push({ priceUsd: parsed.amount, anchorEl: priceEl });
+
+      // If the text used a bare `$` (parser defaulted to USD) and we're on a
+      // non-USD locale, the price is really the locale's currency.
+      const currency =
+        parsed.currency === 'USD' && localeCurrency !== null && localeCurrency !== 'USD'
+          ? localeCurrency
+          : parsed.currency;
+
+      try {
+        const priceUsd = toUsd(parsed.amount, currency);
+        results.push({ priceUsd, anchorEl: priceEl });
+      } catch {
+        // FX table didn't know this currency; skip rather than mislabel.
+        continue;
+      }
     }
     return results;
   },

@@ -10,15 +10,20 @@ describe('amazonDetector.matches', () => {
     'https://www.amazon.com/dp/B08N5WRWNW',
     'https://amazon.com/',
     'https://smile.amazon.com/something',
+    'https://www.amazon.co.uk/',
+    'https://www.amazon.de/',
+    'https://www.amazon.com.au/',
+    'https://www.amazon.ca/',
+    'https://www.amazon.fr/',
   ])('matches %s', (href) => {
     expect(amazonDetector.matches(new URL(href))).toBe(true);
   });
 
   it.each([
-    'https://www.amazon.co.uk/',
-    'https://www.amazon.de/',
     'https://amazon.evil.com/',
     'https://example.com/amazon.com',
+    'https://www.amazon.xx/',
+    'https://amazon-bait.com/',
   ])('does not match %s', (href) => {
     expect(amazonDetector.matches(new URL(href))).toBe(false);
   });

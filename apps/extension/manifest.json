@@ -2,11 +2,31 @@
   "manifest_version": 3,
   "name": "Price → Impact",
   "version": "0.0.1",
-  "description": "Annotates amazon.com prices with high-impact charity equivalents.",
-  "host_permissions": ["*://*.amazon.com/*"],
+  "description": "Annotates Amazon prices with high-impact charity equivalents.",
+  "host_permissions": [
+    "*://*.amazon.com/*",
+    "*://*.amazon.com.au/*",
+    "*://*.amazon.ca/*",
+    "*://*.amazon.co.uk/*",
+    "*://*.amazon.de/*",
+    "*://*.amazon.fr/*",
+    "*://*.amazon.it/*",
+    "*://*.amazon.es/*",
+    "*://*.amazon.nl/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["*://*.amazon.com/*"],
+      "matches": [
+        "*://*.amazon.com/*",
+        "*://*.amazon.com.au/*",
+        "*://*.amazon.ca/*",
+        "*://*.amazon.co.uk/*",
+        "*://*.amazon.de/*",
+        "*://*.amazon.fr/*",
+        "*://*.amazon.it/*",
+        "*://*.amazon.es/*",
+        "*://*.amazon.nl/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
