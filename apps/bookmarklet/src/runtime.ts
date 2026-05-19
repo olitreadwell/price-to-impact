@@ -1,22 +1,19 @@
 import { charities, convertPrice, formatUnits } from '@price-to-impact/charities';
-import { amazonDetector } from './detectors/amazon';
 import { mockDetector } from './detectors/mock';
+import { pickDetectorForUrl } from './detectors/registry';
 import { clearPills, renderPill } from './render';
 import type { Detector } from './types';
 
 /**
- * Ordered list of detectors. The first one that matches the current URL wins.
- * The mock detector is last as a development fallback — it matches any URL
- * but only fires when the page contains opt-in `data-p2i-mock-price`
- * attributes, so it is harmless on real sites.
+ * Bookmarklet entry. The registry holds site-specific + generic
+ * detectors; the mock detector is appended last so the "preview on the
+ * web converter page" affordance still fires when `data-p2i-mock-price`
+ * attributes are present.
  */
-const DETECTORS: readonly Detector[] = [amazonDetector, mockDetector];
-
 function pickDetector(url: URL): Detector | null {
-  for (const detector of DETECTORS) {
-    if (detector.matches(url)) return detector;
-  }
-  return null;
+  const registered = pickDetectorForUrl(url);
+  if (registered !== null) return registered;
+  return mockDetector.detect(document.body).length > 0 ? mockDetector : null;
 }
 
 /**
