@@ -1,15 +1,16 @@
 import { charities, convertPrice, formatUnits } from '@price-to-impact/charities';
+import { amazonDetector } from './detectors/amazon';
 import { mockDetector } from './detectors/mock';
 import { clearPills, renderPill } from './render';
 import type { Detector } from './types';
 
 /**
  * Ordered list of detectors. The first one that matches the current URL wins.
- * The mock detector is at the end as a development fallback — it matches
- * any URL but only fires when the page contains opt-in `data-p2i-mock-price`
- * attributes, so it is harmless in production.
+ * The mock detector is last as a development fallback — it matches any URL
+ * but only fires when the page contains opt-in `data-p2i-mock-price`
+ * attributes, so it is harmless on real sites.
  */
-const DETECTORS: readonly Detector[] = [mockDetector];
+const DETECTORS: readonly Detector[] = [amazonDetector, mockDetector];
 
 function pickDetector(url: URL): Detector | null {
   for (const detector of DETECTORS) {
