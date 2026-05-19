@@ -1,0 +1,26 @@
+{
+  "name": "@price-to-impact/bookmarklet",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "echo 'no lint'",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "build": "bun run build.ts"
+  },
+  "dependencies": {
+    "@price-to-impact/charities": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "happy-dom": "^15",
+    "typescript": "^5",
+    "vitest": "^2.1.8"
+  }
+}
