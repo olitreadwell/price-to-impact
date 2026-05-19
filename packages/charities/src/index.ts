@@ -1,0 +1,42 @@
+import * as z from 'zod';
+
+export const CharitySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  unit: z.string().min(1),
+  unitPlural: z.string().min(1),
+  costPerUnitUsd: z.number().positive().finite(),
+  icon: z.string().min(1),
+  donateUrl: z.url(),
+  source: z.string().min(1),
+  asOf: z.iso.date(),
+});
+
+export type Charity = z.infer<typeof CharitySchema>;
+
+export const charities: readonly Charity[] = z
+  .array(CharitySchema)
+  .min(1)
+  .parse([
+    {
+      id: 'amf',
+      name: 'Against Malaria Foundation',
+      unit: 'net',
+      unitPlural: 'nets',
+      costPerUnitUsd: 5.5,
+      icon: '🦟',
+      donateUrl: 'https://www.againstmalaria.com/Donation.aspx',
+      source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
+      asOf: '2025-01-01',
+    },
+  ]);
+
+export function convertPrice(priceUsd: number, charity: Charity): number {
+  return priceUsd / charity.costPerUnitUsd;
+}
+
+export function formatUnits(count: number, charity: Charity): string {
+  const rounded = count >= 10 ? Math.round(count) : Math.round(count * 10) / 10;
+  const unit = rounded === 1 ? charity.unit : charity.unitPlural;
+  return `${rounded} ${unit}`;
+}
