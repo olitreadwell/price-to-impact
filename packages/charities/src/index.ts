@@ -1,5 +1,6 @@
 export * from './parsePrice';
 export * from './fx';
+export * from './roundup';
 
 /**
  * A high-impact charity entry. Shape is validated by `CharitySchema` in
