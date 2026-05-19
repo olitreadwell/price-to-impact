@@ -10,6 +10,7 @@
     "dev": "bun --filter='@price-to-impact/web' run dev",
     "build": "bun --filter='@price-to-impact/web' run build",
     "lint": "bun --filter='*' run lint",
-    "typecheck": "bun --filter='*' run typecheck"
+    "typecheck": "bun --filter='*' run typecheck",
+    "test": "bun --filter='*' run test"
   }
 }

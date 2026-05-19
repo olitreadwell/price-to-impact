@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+export * from './parsePrice';
+
 export const CharitySchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
