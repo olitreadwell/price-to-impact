@@ -148,18 +148,28 @@ describe('round-up + threshold sanitisation', () => {
     }
   });
 
-  it('clamps roundupCents to [0, threshold) and floors to int', async () => {
+  it('floors fractional roundupCents and rejects negative / non-numeric', async () => {
     fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: -5 });
     expect((await getPrefs()).roundupCents).toBe(0);
-
-    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 99999 });
-    expect((await getPrefs()).roundupCents).toBe(999);
 
     fakeChrome.seed({ activeThresholdCents: 2000, roundupCents: 4.7 });
     expect((await getPrefs()).roundupCents).toBe(4);
 
     fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 'nope' });
     expect((await getPrefs()).roundupCents).toBe(0);
+  });
+
+  it('allows roundupCents at or above threshold (threshold-met state)', async () => {
+    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 1000 });
+    expect((await getPrefs()).roundupCents).toBe(1000);
+
+    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 1234 });
+    expect((await getPrefs()).roundupCents).toBe(1234);
+  });
+
+  it('caps pathological writes at 100 × threshold', async () => {
+    fakeChrome.seed({ activeThresholdCents: 1000, roundupCents: 999_999 });
+    expect((await getPrefs()).roundupCents).toBe(100_000);
   });
 });
 

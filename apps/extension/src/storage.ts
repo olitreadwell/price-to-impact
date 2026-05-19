@@ -95,10 +95,17 @@ function sanitiseThreshold(raw: unknown): ThresholdCents {
     : DEFAULT_PREFS.activeThresholdCents;
 }
 
+/**
+ * Sanitise the persisted jar value: non-negative integer cents. The
+ * jar IS allowed to meet or exceed the active threshold — that's the
+ * "threshold met" state the content script renders as a 🎯 pill. A
+ * sane upper cap of 100 × threshold guards against pathological writes.
+ */
 function sanitiseRoundupCents(raw: unknown, threshold: ThresholdCents): number {
   if (typeof raw !== 'number' || !Number.isFinite(raw)) return 0;
   const floored = Math.max(0, Math.floor(raw));
-  return floored >= threshold ? threshold - 1 : floored;
+  const ceiling = threshold * 100;
+  return Math.min(floored, ceiling);
 }
 
 function sanitiseHistoryEntry(raw: unknown): HistoryEntry | null {
