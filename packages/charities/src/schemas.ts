@@ -31,6 +31,15 @@ export const CharitySchema = z.object({
   costPerUnitUsd: z.number().positive().finite(),
   icon: z.string().min(1),
   donateUrl: z.url(),
+  // Not z.url() — the template contains `{amount}`, which isn't a
+  // valid URL character. We check the protocol prefix manually.
+  donateUrlTemplate: z
+    .string()
+    .regex(/^https?:\/\//, 'must start with http(s)://')
+    .refine((s) => s.includes('{amount}'), {
+      message: 'donateUrlTemplate must contain the {amount} placeholder',
+    })
+    .optional(),
   everyOrgSlug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
   source: z.string().min(1),
   asOf: z.iso.date(),

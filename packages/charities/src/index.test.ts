@@ -52,10 +52,35 @@ describe('donateUrlForAmount', () => {
     expect(donateUrlForAmount(amf, Number.POSITIVE_INFINITY)).toBe(amf.donateUrl);
   });
 
-  it('every shipped charity has an every.org slug', () => {
+  it('every shipped charity has an amount-aware donate URL', () => {
     for (const charity of charities) {
-      expect(charity.everyOrgSlug).toBeDefined();
+      const hasTemplate = charity.donateUrlTemplate !== undefined;
+      const hasEveryOrg = charity.everyOrgSlug !== undefined;
+      expect(hasTemplate || hasEveryOrg).toBe(true);
     }
+  });
+
+  it('donateUrlTemplate takes precedence over everyOrgSlug', () => {
+    const hybrid: Charity = {
+      ...charities[0]!,
+      donateUrlTemplate: 'https://example.test/donate?x={amount}',
+      everyOrgSlug: 'someone-else',
+    };
+    expect(donateUrlForAmount(hybrid, 5)).toBe('https://example.test/donate?x=5.00');
+  });
+
+  it('uses GiveDirectly native amountChosen URL', () => {
+    const gd = charities.find((c) => c.id === 'give-directly')!;
+    const url = donateUrlForAmount(gd, 24.99);
+    expect(url).toBe('https://donate.givedirectly.org/?amountChosen=24.99');
+  });
+
+  it('uses the New Incentives rich every.org URL going straight to card confirm', () => {
+    const ni = charities.find((c) => c.id === 'new-incentives')!;
+    const url = donateUrlForAmount(ni, 24.99);
+    expect(url).toContain('every.org/newincentives');
+    expect(url).toContain('amount=24.99');
+    expect(url).toContain('#/donate/card/confirm');
   });
 });
 

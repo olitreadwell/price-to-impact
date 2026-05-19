@@ -13,31 +13,50 @@ export interface Charity {
   unitPlural: string;
   costPerUnitUsd: number;
   icon: string;
-  /** Fallback "donate" page. Used if `everyOrgSlug` is missing. */
+  /** Fallback "donate" page. Used when no amount-aware flow applies. */
   donateUrl: string;
   /**
-   * Optional Every.org nonprofit slug. When set, pills link to
-   * `every.org/<slug>/donate?amount=<usd>` so the user lands on a
-   * donate page with the exact USD amount pre-filled — closer to
-   * a 1-click flow than the charity's own multi-step donate page.
+   * Native donate URL with a literal `{amount}` placeholder, e.g.
+   * `https://donate.givedirectly.org/?amountChosen={amount}`. Used
+   * first when present — native flows usually skip an intermediate
+   * platform hop. The placeholder is replaced with the USD value to
+   * two decimal places.
+   */
+  donateUrlTemplate?: string;
+  /**
+   * Every.org nonprofit slug. Used when no `donateUrlTemplate` is set
+   * but the charity is on Every.org — pills link to
+   * `every.org/<slug>/donate?amount=<usd>` for an amount-pre-filled
+   * donate page.
    */
   everyOrgSlug?: string;
   source: string;
   asOf: string;
 }
 
+const AMOUNT_PLACEHOLDER = '{amount}';
+
 /**
- * Build a donate URL for a specific USD amount. Falls back to the
- * charity's own donate page when there's no Every.org slug or the
- * amount isn't a finite positive number.
+ * Build a donate URL for a specific USD amount.
+ *
+ * Priority:
+ *   1. `donateUrlTemplate` — native flow, fewest steps for the user.
+ *   2. `everyOrgSlug` — every.org universal donate page.
+ *   3. `donateUrl` — charity's own (often multi-step) flow.
+ *
+ * Falls all the way back to `donateUrl` for non-positive or non-finite
+ * amounts so a malformed price never produces a malformed URL.
  */
 export function donateUrlForAmount(charity: Charity, usdAmount: number): string {
-  if (
-    charity.everyOrgSlug !== undefined &&
-    Number.isFinite(usdAmount) &&
-    usdAmount > 0
-  ) {
-    const amount = usdAmount.toFixed(2);
+  const validAmount = Number.isFinite(usdAmount) && usdAmount > 0;
+  if (!validAmount) return charity.donateUrl;
+
+  const amount = usdAmount.toFixed(2);
+
+  if (charity.donateUrlTemplate !== undefined) {
+    return charity.donateUrlTemplate.replace(AMOUNT_PLACEHOLDER, amount);
+  }
+  if (charity.everyOrgSlug !== undefined) {
     return `https://www.every.org/${charity.everyOrgSlug}/donate?amount=${amount}&frequency=ONCE`;
   }
   return charity.donateUrl;
@@ -80,7 +99,8 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 8,
     icon: '💉',
     donateUrl: 'https://www.newincentives.org/donate',
-    everyOrgSlug: 'new-incentives',
+    donateUrlTemplate:
+      'https://www.every.org/newincentives?frequency=once&amount={amount}&method=card&no_exit=1&designation=NI%20Donate%20Page&require_share_info=true&utm_campaign=donate-button&utm_source=newincentives&utm_medium=donate-button-0.4#/donate/card/confirm',
     source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
     asOf: '2025-01-01',
   },
@@ -92,7 +112,7 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 1.15,
     icon: '💵',
     donateUrl: 'https://www.givedirectly.org/give/',
-    everyOrgSlug: 'givedirectly',
+    donateUrlTemplate: 'https://donate.givedirectly.org/?amountChosen={amount}',
     source: 'GiveDirectly published ~85% delivery efficiency (see givedirectly.org)',
     asOf: '2025-01-01',
   },
