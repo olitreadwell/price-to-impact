@@ -1,23 +1,45 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import * as z from 'zod';
-import { charities, convertPrice, formatUnits } from '@price-to-impact/charities';
+import {
+  charities,
+  convertPrice,
+  formatUnits,
+  parsePriceString,
+  toUsd,
+  type ParsedPrice,
+} from '@price-to-impact/charities';
 import { BookmarkletDragLink } from '@/components/BookmarkletDragLink';
 
-const PriceInputSchema = z.object({
-  amount: z.number().positive().finite().max(1_000_000),
-});
+const MAX_PRICE = 1_000_000;
+
+/**
+ * Accept either a fully-formed price string ("£99", "€1,234.56") or a bare
+ * numeral (treated as USD). Returns null for anything that doesn't parse to
+ * a positive finite value within the supported range.
+ */
+function parseInput(raw: string): ParsedPrice | null {
+  const trimmed = raw.trim();
+  if (trimmed === '') return null;
+
+  const parsed = parsePriceString(trimmed);
+  if (parsed !== null && parsed.amount <= MAX_PRICE) return parsed;
+
+  const bare = Number(trimmed);
+  if (Number.isFinite(bare) && bare > 0 && bare <= MAX_PRICE) {
+    return { amount: bare, currency: 'USD' };
+  }
+  return null;
+}
 
 export default function HomePage() {
   const [raw, setRaw] = useState('24.99');
 
-  const parsed = useMemo(() => {
-    const amount = Number(raw);
-    return PriceInputSchema.safeParse({ amount });
-  }, [raw]);
-
-  const amount = parsed.success ? parsed.data.amount : null;
+  const parsed = useMemo(() => parseInput(raw), [raw]);
+  const amountUsd = useMemo(() => {
+    if (parsed === null) return null;
+    return toUsd(parsed.amount, parsed.currency);
+  }, [parsed]);
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-12 sm:py-16">
@@ -26,40 +48,44 @@ export default function HomePage() {
           Price → Impact
         </h1>
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          See what a price could buy in high-impact charity. Today: Against
-          Malaria Foundation. More coming.
+          See what a price could buy in high-impact charity. Today: AMF, Helen
+          Keller, New Incentives, GiveDirectly.
         </p>
 
         <label className="mt-8 block">
           <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            Price (USD)
+            Price
           </span>
           <div className="mt-2 flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 focus-within:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
-            <span className="text-zinc-500 dark:text-zinc-400">$</span>
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
-              step="0.01"
-              min="0"
               value={raw}
               onChange={(e) => setRaw(e.target.value)}
+              placeholder="$24.99 or £99 or €19,99"
               className="flex-1 bg-transparent text-lg text-zinc-900 outline-none dark:text-zinc-50"
-              aria-label="Price in USD"
+              aria-label="Price (any currency)"
             />
           </div>
-          {!parsed.success && raw !== '' && (
+          {parsed === null && raw.trim() !== '' && (
             <span
               role="alert"
               className="mt-2 block text-xs text-red-600 dark:text-red-400"
             >
-              Enter a positive number up to 1,000,000.
+              Enter a positive amount (e.g. $24.99, £99, €19,99) up to 1,000,000.
+            </span>
+          )}
+          {parsed !== null && parsed.currency !== 'USD' && amountUsd !== null && (
+            <span className="mt-2 block text-xs text-zinc-500 dark:text-zinc-400">
+              Detected {parsed.amount} {parsed.currency} → approx. $
+              {amountUsd.toFixed(2)} USD (rate approximate, see About).
             </span>
           )}
         </label>
 
         <ul className="mt-8 space-y-4">
           {charities.map((charity) => {
-            const units = amount === null ? null : convertPrice(amount, charity);
+            const units = amountUsd === null ? null : convertPrice(amountUsd, charity);
             return (
               <li
                 key={charity.id}
