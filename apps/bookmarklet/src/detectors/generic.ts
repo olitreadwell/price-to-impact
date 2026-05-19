@@ -61,18 +61,16 @@ function nearestBlockAnchor(node: Node): Element | null {
   return null;
 }
 
-function collectTextNodes(node: Node, out: Text[]): void {
+function* visibleTextNodes(node: Node): Generator<Text> {
   if (node.nodeType === 3 /* TEXT_NODE */) {
-    out.push(node as Text);
+    yield node as Text;
     return;
   }
-  if (!(node instanceof Element)) {
-    for (const child of Array.from(node.childNodes)) collectTextNodes(child, out);
-    return;
+  if (node instanceof Element) {
+    if (SKIP_TAGS.has(node.tagName)) return;
+    if (!notObviouslyHidden(node)) return;
   }
-  if (SKIP_TAGS.has(node.tagName)) return;
-  if (!notObviouslyHidden(node)) return;
-  for (const child of Array.from(node.childNodes)) collectTextNodes(child, out);
+  for (const child of Array.from(node.childNodes)) yield* visibleTextNodes(child);
 }
 
 export const genericDetector: Detector = {
@@ -86,10 +84,7 @@ export const genericDetector: Detector = {
     const seenValues = new Set<number>();
     const seenAnchors = new WeakSet<Element>();
 
-    const textNodes: Text[] = [];
-    collectTextNodes(root, textNodes);
-
-    for (const node of textNodes) {
+    for (const node of visibleTextNodes(root)) {
       const text = node.nodeValue ?? '';
       if (text.length < MIN_TEXT_LEN || text.length > MAX_TEXT_LEN) continue;
       const match = text.match(PRICE_RE);

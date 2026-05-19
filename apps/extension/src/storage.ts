@@ -37,35 +37,35 @@ export const DEFAULT_PREFS: Prefs = {
 
 const STORAGE_KEY = 'p2i.prefs';
 
+function sanitiseHostnames(raw: unknown): readonly string[] {
+  if (!Array.isArray(raw)) return [];
+  const lowered = raw
+    .filter((s): s is string => typeof s === 'string')
+    .map((s) => s.toLowerCase());
+  return Array.from(new Set(lowered));
+}
+
+function sanitiseOverrides(raw: unknown): Readonly<Record<string, Currency>> {
+  if (raw === null || typeof raw !== 'object') return {};
+  const overrides: Record<string, Currency> = {};
+  for (const [host, cur] of Object.entries(raw as Record<string, unknown>)) {
+    if (isCurrency(cur)) overrides[host.toLowerCase()] = cur;
+  }
+  return overrides;
+}
+
+function sanitiseCharityId(raw: unknown): string {
+  return typeof raw === 'string' && raw !== '' ? raw : DEFAULT_PREFS.selectedCharityId;
+}
+
 function sanitise(raw: unknown): Prefs {
   if (raw === null || typeof raw !== 'object') return { ...DEFAULT_PREFS };
-  const partial = raw as Partial<Prefs>;
-
-  const overrides: Record<string, Currency> = {};
-  if (partial.hostnameCurrencyOverrides && typeof partial.hostnameCurrencyOverrides === 'object') {
-    for (const [host, cur] of Object.entries(partial.hostnameCurrencyOverrides)) {
-      if (isCurrency(cur)) overrides[host.toLowerCase()] = cur;
-    }
-  }
-
-  const disabledHostnames = Array.isArray(partial.disabledHostnames)
-    ? Array.from(
-        new Set(
-          partial.disabledHostnames
-            .filter((s): s is string => typeof s === 'string')
-            .map((s) => s.toLowerCase()),
-        ),
-      )
-    : [];
-
+  const p = raw as Partial<Prefs>;
   return {
-    selectedCharityId:
-      typeof partial.selectedCharityId === 'string' && partial.selectedCharityId !== ''
-        ? partial.selectedCharityId
-        : DEFAULT_PREFS.selectedCharityId,
-    paused: typeof partial.paused === 'boolean' ? partial.paused : DEFAULT_PREFS.paused,
-    disabledHostnames,
-    hostnameCurrencyOverrides: overrides,
+    selectedCharityId: sanitiseCharityId(p.selectedCharityId),
+    paused: typeof p.paused === 'boolean' ? p.paused : DEFAULT_PREFS.paused,
+    disabledHostnames: sanitiseHostnames(p.disabledHostnames),
+    hostnameCurrencyOverrides: sanitiseOverrides(p.hostnameCurrencyOverrides),
   };
 }
 
