@@ -6,6 +6,8 @@
  * "Load unpacked"):
  *   dist/manifest.json
  *   dist/content.js
+ *   dist/popup.js
+ *   dist/popup.html
  *   dist/options.html
  *   dist/icons/icon-{16,48,128}.png
  */
@@ -22,7 +24,10 @@ await mkdir(distDir, { recursive: true });
 await mkdir(iconsDst, { recursive: true });
 
 const result = await Bun.build({
-  entrypoints: [resolve(here, 'src/content.ts')],
+  entrypoints: [
+    resolve(here, 'src/content.ts'),
+    resolve(here, 'src/popup/popup.ts'),
+  ],
   outdir: distDir,
   format: 'iife',
   target: 'browser',
@@ -38,6 +43,7 @@ if (!result.success) {
 
 await copyFile(resolve(here, 'manifest.json'), resolve(distDir, 'manifest.json'));
 await copyFile(resolve(here, 'src/options.html'), resolve(distDir, 'options.html'));
+await copyFile(resolve(here, 'src/popup/popup.html'), resolve(distDir, 'popup.html'));
 
 for (const icon of await readdir(iconsSrc)) {
   if (icon.endsWith('.png')) {
@@ -45,6 +51,8 @@ for (const icon of await readdir(iconsSrc)) {
   }
 }
 
-const [output] = result.outputs;
-const size = output === undefined ? 0 : output.size;
-console.log(`✓ Extension built (${(size / 1024).toFixed(1)} KB content.js + icons) → ${distDir}`);
+const sizes = result.outputs
+  .map((o) => `${o.path.split('/').pop()}=${(o.size / 1024).toFixed(1)}KB`)
+  .join(', ');
+console.log(`✓ Extension built → ${distDir}`);
+console.log(`  ${sizes}`);

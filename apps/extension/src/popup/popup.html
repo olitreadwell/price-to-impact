@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Price → Impact</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --accent: #fbbf24;
+        --accent-fg: #1f2937;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #18181b;
+          --fg: #f4f4f5;
+          --muted: #9ca3af;
+          --border: #3f3f46;
+        }
+      }
+      body {
+        font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        margin: 0;
+        padding: 14px 16px;
+        width: 280px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+      header h1 { margin: 0; font-size: 14px; font-weight: 600; }
+      header .icon { font-size: 18px; line-height: 1; }
+      section { padding: 10px 0; border-top: 1px solid var(--border); }
+      section:first-of-type { border-top: none; }
+      label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+      select, button {
+        width: 100%;
+        box-sizing: border-box;
+        background: var(--bg);
+        color: var(--fg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 6px 8px;
+        font: inherit;
+      }
+      .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      .row .label-block { flex: 1; }
+      .row .label-block .title { font-weight: 500; }
+      .row .label-block .hint { color: var(--muted); font-size: 11px; }
+      .switch {
+        appearance: none;
+        position: relative;
+        width: 32px;
+        height: 18px;
+        background: var(--border);
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: background 120ms;
+        flex-shrink: 0;
+      }
+      .switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        background: var(--bg);
+        border-radius: 9999px;
+        transition: transform 120ms;
+      }
+      .switch:checked { background: var(--accent); }
+      .switch:checked::after { transform: translateX(14px); }
+      footer { padding-top: 8px; border-top: 1px solid var(--border); }
+      footer a { color: var(--muted); text-decoration: none; font-size: 11px; }
+      footer a:hover { text-decoration: underline; }
+      #status { color: var(--muted); font-size: 11px; margin-top: 6px; min-height: 1.2em; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="icon" id="header-icon">🦟</span>
+      <h1>Price → Impact</h1>
+    </header>
+
+    <section>
+      <label for="charity">Show impact in</label>
+      <select id="charity" aria-label="Selected charity"></select>
+    </section>
+
+    <section>
+      <div class="row">
+        <div class="label-block">
+          <div class="title">Pause</div>
+          <div class="hint">Stop annotating prices on every site.</div>
+        </div>
+        <input type="checkbox" class="switch" id="paused" aria-label="Pause globally" />
+      </div>
+    </section>
+
+    <section id="site-section">
+      <div class="row">
+        <div class="label-block">
+          <div class="title">Enabled on this site</div>
+          <div class="hint" id="site-hint">—</div>
+        </div>
+        <input type="checkbox" class="switch" id="site-enabled" aria-label="Enable on this site" />
+      </div>
+    </section>
+
+    <footer>
+      <div id="status"></div>
+      <a id="options-link" href="#">Options</a> ·
+      <a id="project-link" href="https://github.com/olitreadwell/price-to-impact" target="_blank" rel="noopener">Source</a>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
