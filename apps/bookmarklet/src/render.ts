@@ -34,6 +34,37 @@ function ownerDoc(el: Element): Document {
 }
 
 /**
+ * Inline `style=` has higher specificity than any class selector but
+ * can't express pseudo-classes like `:hover`. Inject a one-time style
+ * element with `!important` hover overrides so a mouseover lifts the
+ * pill slightly and darkens its background. Keyed by id so we never
+ * inject twice into the same document.
+ */
+const HOVER_STYLE_ID = 'p2i-pill-hover-style';
+const HOVER_STYLE_CSS = `
+.${PILL_CLASS} {
+  transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+.${PILL_CLASS}:hover {
+  background-color: #f59e0b !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+.${PILL_CLASS}:focus-visible {
+  outline: 2px solid #1f2937 !important;
+  outline-offset: 2px !important;
+}
+`;
+
+function ensureHoverStyles(doc: Document): void {
+  if (doc.getElementById(HOVER_STYLE_ID) !== null) return;
+  const style = doc.createElement('style');
+  style.id = HOVER_STYLE_ID;
+  style.textContent = HOVER_STYLE_CSS;
+  (doc.head ?? doc.documentElement).append(style);
+}
+
+/**
  * Defense in depth: reject any href that isn't `http://` or `https://`.
  * Today every charity donateUrl is a trusted hardcoded https string, but
  * if that data ever flows from outside the codebase a `javascript:` URL
@@ -68,6 +99,9 @@ export function renderPill(target: Element, options: PillOptions): void {
   const { label, href, title } = options;
   if (!isSafeHttpUrl(href)) return;
 
+  const doc = ownerDoc(target);
+  ensureHoverStyles(doc);
+
   const existing = target.nextElementSibling;
   if (existing instanceof HTMLAnchorElement && existing.hasAttribute(PILL_DATA_ATTR)) {
     existing.textContent = label;
@@ -75,7 +109,7 @@ export function renderPill(target: Element, options: PillOptions): void {
     if (title !== undefined) existing.title = title;
     return;
   }
-  const pill = ownerDoc(target).createElement('a');
+  const pill = doc.createElement('a');
   pill.className = PILL_CLASS;
   pill.setAttribute(PILL_DATA_ATTR, '');
   pill.setAttribute('style', PILL_STYLE);
