@@ -2,6 +2,14 @@
   "name": "price-to-impact",
   "private": true,
   "version": "0.0.1",
+  "description": "See every price as charity impact. A Habitual Genesis side project.",
+  "author": "Habitual Genesis <https://github.com/habitualgenesis>",
+  "license": "MIT",
+  "homepage": "https://github.com/olitreadwell/price-to-impact",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/olitreadwell/price-to-impact.git"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"

@@ -1,0 +1,58 @@
+name: Feature request
+description: Propose something new — site detector, charity, UI change.
+title: '[feat] '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Lead with the why. "What would this unlock for users" beats
+        "build me X" in every case.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: |
+        The user pain or missing capability. Not the feature you've
+        already designed in your head.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Your proposal
+      description: |
+        A concrete idea is welcome but optional. If you have a sketch,
+        describe it. If you don't, just say so.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface does this touch?
+      multiple: true
+      options:
+        - Chrome extension content script
+        - Chrome extension popup
+        - Chrome extension options page
+        - Bookmarklet
+        - Web converter
+        - Charity / FX data (packages/charities)
+        - Other / not sure
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: |
+        Existing extensions or workarounds you already tried. Why don't
+        they fit?
+
+  - type: checkboxes
+    id: dupe-check
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched existing issues; this isn't a duplicate.
+          required: true

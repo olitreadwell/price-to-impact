@@ -101,3 +101,9 @@ Then in Chrome: `chrome://extensions` → enable "Developer mode" →
 
 See [`docs/architecture.md`](docs/architecture.md) for the full data
 flow and the two contracts that hold it together.
+
+---
+
+<sub>A [Habitual Genesis](https://github.com/habitualgenesis) project.
+Released under [MIT](LICENSE). Contributions welcome — see
+[CONTRIBUTING](CONTRIBUTING.md).</sub>

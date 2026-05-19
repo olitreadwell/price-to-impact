@@ -1,0 +1,83 @@
+name: Bug report
+description: Something doesn't work the way it should.
+title: '[bug] '
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Concrete repro
+        steps + the surface (extension / bookmarklet / web) save a
+        round of back-and-forth.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      description: Which part of the project misbehaves?
+      options:
+        - Chrome extension
+        - Bookmarklet
+        - Web converter (apps/web)
+        - Packages (charities, etc.)
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Be specific. Numbers > adjectives.
+      placeholder: |
+        Visited amazon.com.au, expected a pill on every price card.
+        Got pills only on the buy-box; search results were untouched.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Install the unpacked extension from apps/extension/dist
+        2. Go to <URL>
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: chrome-version
+    attributes:
+      label: Chrome version
+      description: 'chrome://version → the line starting with "Google Chrome"'
+      placeholder: 'e.g. 130.0.6723.92'
+
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension version
+      description: 'chrome://extensions → "Details" → version'
+      placeholder: 'e.g. 0.0.1'
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Any errors from the page console or chrome://extensions service-worker logs.
+      render: text
+
+  - type: checkboxes
+    id: dupe-check
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I searched existing issues; this isn't a duplicate.
+          required: true

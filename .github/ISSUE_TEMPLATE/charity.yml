@@ -1,0 +1,64 @@
+name: New charity request
+description: Propose adding a charity (or updating one) to the impact dropdown.
+title: '[charity] '
+labels: [charity-data]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adding a charity is mostly data work. We need a few specific
+        fields — sourced from a trusted cost-effectiveness estimate, not
+        the charity's own marketing.
+
+  - type: input
+    id: name
+    attributes:
+      label: Charity name
+      placeholder: 'e.g. Malaria Consortium — Seasonal Malaria Chemoprevention'
+    validations:
+      required: true
+
+  - type: input
+    id: unit
+    attributes:
+      label: Impact unit
+      description: |
+        What does the cost figure buy? Singular form. We use this in
+        the pill: "≈ 4.5 mosquito nets".
+      placeholder: 'e.g. month of protection, child reached, household helped'
+    validations:
+      required: true
+
+  - type: input
+    id: cost
+    attributes:
+      label: Cost per unit (USD)
+      placeholder: 'e.g. 5.50'
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source of the cost figure
+      description: 'Direct link to a GiveWell CEA, peer-reviewed paper, or comparable.'
+      placeholder: 'e.g. https://www.givewell.org/...'
+    validations:
+      required: true
+
+  - type: input
+    id: donate-url
+    attributes:
+      label: Donate URL (with amount placeholder if possible)
+      description: |
+        Native amount-aware URL preferred. If on Every.org, use the
+        rich `#/donate/card/confirm` template (see existing charities).
+      placeholder: 'e.g. https://donate.example.org/?amount={amount}'
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else (special caveats, evaluator commentary, etc.)
