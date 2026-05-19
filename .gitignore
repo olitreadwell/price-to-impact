@@ -17,3 +17,6 @@ apps/web/src/generated/
 
 # Extension build output
 apps/extension/dist/
+
+# Extension release artifacts
+apps/extension/releases/
