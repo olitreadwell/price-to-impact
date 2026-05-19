@@ -20,3 +20,7 @@ apps/extension/dist/
 
 # Extension release artifacts
 apps/extension/releases/
+
+# Local planning docs (kept on disk, never committed)
+/SPEC.md
+/tasks/
