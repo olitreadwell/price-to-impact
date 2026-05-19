@@ -151,6 +151,47 @@ describe('amazonDetector.detect', () => {
     expect(results[0]?.anchorEl.id).toBe('first');
   });
 
+  it('keeps one pill per product card on listings, even if prices match', () => {
+    // Two different products in a search results grid with identical prices.
+    // The user wants to see both annotated, not one collapsed to the other.
+    document.body.innerHTML = `
+      <div data-asin="B0AAA" data-component-type="s-search-result">
+        <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+      </div>
+      <div data-asin="B0BBB" data-component-type="s-search-result">
+        <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+      </div>
+    `;
+
+    const results = amazonDetector.detect(document.body);
+    expect(results).toHaveLength(2);
+  });
+
+  it('still dedupes within a single product card', () => {
+    // Same product, same price shown in buy-box and mini-cart.
+    document.body.innerHTML = `
+      <div data-asin="B0XXX">
+        <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+        <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+      </div>
+    `;
+
+    const results = amazonDetector.detect(document.body);
+    expect(results).toHaveLength(1);
+  });
+
+  it('falls back to global dedupe outside any product card (PDP chrome)', () => {
+    // No data-asin / s-search-result ancestor — typical of PDP header
+    // widgets where the same price shows in cart-mini + breadcrumb.
+    document.body.innerHTML = `
+      <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+      <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+    `;
+
+    const results = amazonDetector.detect(document.body);
+    expect(results).toHaveLength(1);
+  });
+
   it('anchors each result at the .a-price element for pill placement', () => {
     document.body.innerHTML = `
       <span class="a-price" id="target">

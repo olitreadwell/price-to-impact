@@ -78,12 +78,27 @@ function currentLocaleCurrency(): Currency | null {
   return hostnameToCurrency(window.location.hostname);
 }
 
+/**
+ * Boundary for "this is a single product card". Each card gets its own
+ * dedup scope, so two cards in a search-results grid that happen to
+ * share a price still produce two pills. Inside one card, the same
+ * price shown three different ways (buy-box, breadcrumb, mini-cart)
+ * collapses to one pill.
+ *
+ * Outside any card (single-product detail page chrome, header widgets)
+ * we use a single "global" scope, which still gives us the original
+ * "don't show $24.99 five times on a PDP" behaviour.
+ */
+const PRODUCT_SCOPE_SELECTOR =
+  '[data-asin]:not([data-asin=""]),[data-component-type="s-search-result"]';
+
 export const amazonDetector: Detector = {
   id: 'amazon',
   matches: isAmazonUrl,
   detect(root) {
     const results: DetectedPrice[] = [];
-    const seenPrices = new Set<number>();
+    const seenByScope = new WeakMap<Element, Set<number>>();
+    const seenGlobal = new Set<number>();
     const localeCurrency = currentLocaleCurrency();
 
     for (const priceEl of root.querySelectorAll('.a-price')) {
@@ -109,13 +124,19 @@ export const amazonDetector: Detector = {
         continue;
       }
 
-      // Dedupe: the same price often appears repeatedly on a page (cart,
-      // breadcrumb, mini-buy-box, sticky header). Render one pill per
-      // unique value, anchored to the first occurrence — which is usually
-      // the most prominent one in document order.
+      const scope = priceEl.closest(PRODUCT_SCOPE_SELECTOR);
+      const seen =
+        scope === null
+          ? seenGlobal
+          : (seenByScope.get(scope) ?? (() => {
+              const s = new Set<number>();
+              seenByScope.set(scope, s);
+              return s;
+            })());
+
       const key = Math.round(priceUsd * 100);
-      if (seenPrices.has(key)) continue;
-      seenPrices.add(key);
+      if (seen.has(key)) continue;
+      seen.add(key);
 
       results.push({ priceUsd, anchorEl: priceEl });
     }
