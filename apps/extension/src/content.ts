@@ -25,6 +25,7 @@ import {
   charities,
   convertPrice,
   donateUrlForAmount,
+  formatJarProgress,
   formatUnits,
   jarContribution,
   thresholdState,
@@ -108,21 +109,51 @@ interface RenderOnePillArgs {
   readonly thresholdMet: boolean;
 }
 
+function buildCardMeta(charity: Charity, priceUsd: number): string[] {
+  const meta = [
+    `$${charity.costPerUnitUsd.toFixed(2)} per ${charity.unit}`,
+    `Source: ${charity.source} (as of ${charity.asOf})`,
+  ];
+  if (currentPrefs.roundupCents > 0) {
+    meta.push(
+      `Round-up jar: ${formatJarProgress(currentPrefs.roundupCents, currentPrefs.activeThresholdCents)}`,
+    );
+  }
+  // Reference priceUsd so the param isn't unused (future per-price
+  // meta lines like "+12¢ to the jar" land here).
+  void priceUsd;
+  return meta;
+}
+
 function renderOnePill({ priceUsd, anchorEl, charity, thresholdMet }: RenderOnePillArgs): void {
   const units = convertPrice(priceUsd, charity);
+  const unitsLabel = formatUnits(units, charity);
+  const meta = buildCardMeta(charity, priceUsd);
 
   if (thresholdMet) {
     const thresholdUsd = currentPrefs.activeThresholdCents / 100;
     renderPill(anchorEl, {
-      label: `🎯 ${charity.icon} Donate $${thresholdUsd.toFixed(0)} → ${formatUnits(units, charity)} from this price`,
+      label: `🎯 ${charity.icon} Donate $${thresholdUsd.toFixed(0)} → ${unitsLabel} from this price`,
       href: donateUrlForAmount(charity, thresholdUsd),
       title: `Round-up jar full — 1-click donate $${thresholdUsd.toFixed(2)} to ${charity.name}`,
+      card: {
+        title: `🎯 ${charity.name}`,
+        subtitle: `Donate $${thresholdUsd.toFixed(2)} (round-up jar full)`,
+        meta,
+        cta: `Click to donate $${thresholdUsd.toFixed(2)} →`,
+      },
     });
   } else {
     renderPill(anchorEl, {
-      label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
+      label: `${charity.icon} ≈ ${unitsLabel}`,
       href: donateUrlForAmount(charity, priceUsd),
       title: `Donate $${priceUsd.toFixed(2)} to ${charity.name}`,
+      card: {
+        title: `${charity.icon} ${charity.name}`,
+        subtitle: `$${priceUsd.toFixed(2)} ≈ ${unitsLabel}`,
+        meta,
+        cta: `Click to donate $${priceUsd.toFixed(2)} →`,
+      },
     });
   }
 

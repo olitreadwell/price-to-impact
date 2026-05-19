@@ -29,10 +29,20 @@ function renderResults(prices: readonly DetectedPrice[], charity: Charity): bool
   if (prices.length === 0) return false;
   for (const { priceUsd, anchorEl } of prices) {
     const units = convertPrice(priceUsd, charity);
+    const unitsLabel = formatUnits(units, charity);
     renderPill(anchorEl, {
-      label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
+      label: `${charity.icon} ≈ ${unitsLabel}`,
       href: donateUrlForAmount(charity, priceUsd),
       title: `Donate $${priceUsd.toFixed(2)} to ${charity.name}`,
+      card: {
+        title: `${charity.icon} ${charity.name}`,
+        subtitle: `$${priceUsd.toFixed(2)} ≈ ${unitsLabel}`,
+        meta: [
+          `$${charity.costPerUnitUsd.toFixed(2)} per ${charity.unit}`,
+          `Source: ${charity.source} (as of ${charity.asOf})`,
+        ],
+        cta: `Click to donate $${priceUsd.toFixed(2)} →`,
+      },
     });
   }
   return true;

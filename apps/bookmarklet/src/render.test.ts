@@ -117,6 +117,96 @@ describe('renderPill', () => {
   });
 });
 
+describe('info card', () => {
+  it('renders no card when options.card is absent', () => {
+    const target = document.createElement('span');
+    document.body.append(target);
+
+    renderPill(target, opts('label'));
+
+    expect(target.nextElementSibling?.querySelector('.p2i-pill-card')).toBeNull();
+  });
+
+  it('renders a card child with title, subtitle, meta and CTA', () => {
+    const target = document.createElement('span');
+    document.body.append(target);
+
+    renderPill(target, {
+      label: '🦟 ≈ 4.5 nets',
+      href: HREF,
+      card: {
+        title: '🦟 Against Malaria Foundation',
+        subtitle: '$24.99 ≈ 4.5 nets',
+        meta: ['$5.50 per net', 'Source: GiveWell (as of 2025-01-01)'],
+        cta: 'Click to donate $24.99 →',
+      },
+    });
+
+    const pill = target.nextElementSibling as HTMLAnchorElement;
+    const card = pill.querySelector('.p2i-pill-card');
+    expect(card).not.toBeNull();
+    expect(card?.textContent).toContain('Against Malaria Foundation');
+    expect(card?.textContent).toContain('$24.99 ≈ 4.5 nets');
+    expect(card?.textContent).toContain('$5.50 per net');
+    expect(card?.textContent).toContain('Click to donate $24.99 →');
+  });
+
+  it('card defaults to display:none in the inline style', () => {
+    const target = document.createElement('span');
+    document.body.append(target);
+
+    renderPill(target, {
+      label: 'x',
+      href: HREF,
+      card: { title: 't', subtitle: 's', meta: [] },
+    });
+
+    const card = target.nextElementSibling?.querySelector('.p2i-pill-card');
+    expect(card?.getAttribute('style')).toContain('display:none');
+  });
+
+  it('updates card content in place when re-rendering on the same anchor', () => {
+    const target = document.createElement('span');
+    document.body.append(target);
+
+    renderPill(target, {
+      label: 'first',
+      href: HREF,
+      card: { title: 'Old', subtitle: 's1', meta: [] },
+    });
+    renderPill(target, {
+      label: 'second',
+      href: HREF,
+      card: { title: 'New', subtitle: 's2', meta: [] },
+    });
+
+    const pills = document.body.querySelectorAll('[data-p2i-pill]');
+    expect(pills).toHaveLength(1);
+    expect(pills[0]?.textContent).toContain('New');
+    expect(pills[0]?.textContent).not.toContain('Old');
+  });
+
+  it('treats card text as text content, not HTML (XSS guard)', () => {
+    const target = document.createElement('span');
+    document.body.append(target);
+
+    renderPill(target, {
+      label: 'safe',
+      href: HREF,
+      card: {
+        title: '<img src=x onerror=alert(1)>',
+        subtitle: 'x',
+        meta: ['<script>alert(2)</script>'],
+      },
+    });
+
+    const card = target.nextElementSibling?.querySelector('.p2i-pill-card');
+    expect(card?.querySelector('img')).toBeNull();
+    expect(card?.querySelector('script')).toBeNull();
+    expect(card?.textContent).toContain('<img src=x onerror=alert(1)>');
+  });
+});
+
 describe('clearPills', () => {
   it('removes every pill from the tree', () => {
     document.body.innerHTML = `
