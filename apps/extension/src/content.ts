@@ -33,6 +33,7 @@ import {
 } from '@price-to-impact/charities';
 import { amazonDetector } from '@price-to-impact/bookmarklet/detectors/amazon';
 import { clearPills, renderPill } from '@price-to-impact/bookmarklet/render';
+import { share } from './share';
 import {
   DEFAULT_PREFS,
   getPrefs,
@@ -45,6 +46,28 @@ import {
 const RENDER_DEBOUNCE_MS = 250;
 const THRESHOLD_DATA_ATTR = 'data-p2i-threshold-cents';
 const PRICE_DATA_ATTR = 'data-p2i-price-usd';
+const SHARE_BUTTON_CLASS = 'p2i-share-btn';
+const SHARE_BUTTON_ATTR = 'data-p2i-share';
+const SHARE_BUTTON_STYLE = [
+  'display:inline-flex',
+  'align-items:center',
+  'justify-content:center',
+  'margin-left:4px',
+  'width:22px',
+  'height:22px',
+  'padding:0',
+  'background:transparent',
+  'border:1px solid rgba(0,0,0,0.15)',
+  'border-radius:50%',
+  'color:#1f2937',
+  'font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif',
+  'font-size:12px',
+  'line-height:1',
+  'vertical-align:middle',
+  'cursor:pointer',
+].join(';');
+
+const SHARE_PROJECT_URL = 'https://github.com/olitreadwell/price-to-impact';
 
 let currentPrefs: Prefs = DEFAULT_PREFS;
 let observer: MutationObserver | null = null;
@@ -77,11 +100,18 @@ function bumpJarBy(cents: number): void {
   void setPrefs({ roundupCents: currentPrefs.roundupCents + cents });
 }
 
+function clearShareButtons(root: ParentNode): void {
+  for (const btn of root.querySelectorAll(`[${SHARE_BUTTON_ATTR}]`)) {
+    btn.remove();
+  }
+}
+
 function renderAll(): void {
   if (document.body === null) return;
   // Clear before the gate, not after: toggling pause / per-site disable
   // should remove existing pills, not leave them stale.
   clearPills(document.body);
+  clearShareButtons(document.body);
   if (!shouldRunHere(currentPrefs)) return;
 
   const charity = findCharity(currentPrefs.selectedCharityId);
@@ -165,7 +195,45 @@ function renderOnePill({ priceUsd, anchorEl, charity, thresholdMet }: RenderOneP
     if (thresholdMet) {
       pill.setAttribute(THRESHOLD_DATA_ATTR, String(currentPrefs.activeThresholdCents));
     }
+    ensureShareButton({ pill, priceUsd, charity, unitsLabel });
   }
+}
+
+interface ShareButtonArgs {
+  readonly pill: HTMLAnchorElement;
+  readonly priceUsd: number;
+  readonly charity: Charity;
+  readonly unitsLabel: string;
+}
+
+function ensureShareButton({ pill, priceUsd, charity, unitsLabel }: ShareButtonArgs): void {
+  const existing = pill.nextElementSibling;
+  if (existing instanceof HTMLButtonElement && existing.hasAttribute(SHARE_BUTTON_ATTR)) {
+    existing.setAttribute(PRICE_DATA_ATTR, priceUsd.toFixed(2));
+    return;
+  }
+  const btn = pill.ownerDocument.createElement('button');
+  btn.type = 'button';
+  btn.className = SHARE_BUTTON_CLASS;
+  btn.setAttribute(SHARE_BUTTON_ATTR, '');
+  btn.setAttribute(PRICE_DATA_ATTR, priceUsd.toFixed(2));
+  btn.setAttribute('style', SHARE_BUTTON_STYLE);
+  btn.setAttribute(
+    'aria-label',
+    `Share that you donated $${priceUsd.toFixed(2)} to ${charity.name}`,
+  );
+  btn.title = 'Share your impact';
+  btn.textContent = '↗';
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    void share({
+      title: 'Price → Impact',
+      text: `I just turned $${priceUsd.toFixed(2)} into ≈ ${unitsLabel} via ${charity.name}.`,
+      url: SHARE_PROJECT_URL,
+    });
+  });
+  pill.insertAdjacentElement('afterend', btn);
 }
 
 /**
