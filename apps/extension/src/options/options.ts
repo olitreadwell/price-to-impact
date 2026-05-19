@@ -238,6 +238,17 @@ async function init(): Promise<void> {
     await setPrefs({ history: [] });
     showStatus('History cleared.');
   });
+
+  const intentToggle = $<HTMLInputElement>('purchase-intent-toggle');
+  intentToggle.checked = prefs.purchaseIntentEnabled;
+  intentToggle.addEventListener('change', async () => {
+    await setPrefs({ purchaseIntentEnabled: intentToggle.checked });
+    showStatus(
+      intentToggle.checked
+        ? 'Will prompt on Add to Cart / Buy Now.'
+        : 'Purchase prompt disabled.',
+    );
+  });
 }
 
 void init();

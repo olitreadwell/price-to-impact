@@ -50,6 +50,8 @@ export interface Prefs {
   activeThresholdCents: ThresholdCents;
   /** Intent-only log of pill clicks. Append-only, capped at HISTORY_CAP. */
   history: readonly HistoryEntry[];
+  /** When true, show a toast prompting the user to round up after they click Add to Cart / Buy Now. */
+  purchaseIntentEnabled: boolean;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -60,6 +62,7 @@ export const DEFAULT_PREFS: Prefs = {
   roundupCents: 0,
   activeThresholdCents: 1000,
   history: [],
+  purchaseIntentEnabled: false,
 };
 
 const STORAGE_KEY = 'p2i.prefs';
@@ -136,6 +139,10 @@ function sanitise(raw: unknown): Prefs {
     roundupCents: sanitiseRoundupCents(p.roundupCents, activeThresholdCents),
     activeThresholdCents,
     history: sanitiseHistory(p.history),
+    purchaseIntentEnabled:
+      typeof p.purchaseIntentEnabled === 'boolean'
+        ? p.purchaseIntentEnabled
+        : DEFAULT_PREFS.purchaseIntentEnabled,
   };
 }
 

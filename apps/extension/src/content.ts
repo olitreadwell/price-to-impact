@@ -33,6 +33,7 @@ import {
 } from '@price-to-impact/charities';
 import { amazonDetector } from '@price-to-impact/bookmarklet/detectors/amazon';
 import { clearPills, renderPill } from '@price-to-impact/bookmarklet/render';
+import { wirePurchaseIntent } from './purchaseIntent';
 import { share } from './share';
 import {
   DEFAULT_PREFS,
@@ -318,6 +319,13 @@ async function boot(): Promise<void> {
 
   // One listener for the lifetime of the page handles every pill click.
   document.addEventListener('click', handlePillClick, true);
+
+  // Optional: prompt to round up after Amazon's Add to Cart / Buy Now.
+  // Opt-in via prefs.purchaseIntentEnabled (default false).
+  wirePurchaseIntent({
+    isEnabled: () => currentPrefs.purchaseIntentEnabled && !currentPrefs.paused,
+    bumpJarBy,
+  });
 }
 
 void boot();
