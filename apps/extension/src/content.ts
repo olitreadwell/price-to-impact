@@ -27,14 +27,16 @@ let scheduled: ReturnType<typeof setTimeout> | null = null;
 
 function shouldRunHere(prefs: Prefs): boolean {
   if (prefs.paused) return false;
-  const hostname = window.location.hostname.toLowerCase();
-  if (prefs.disabledHostnames.includes(hostname)) return false;
+  // window.location.hostname is already lowercase per WHATWG URL.
+  if (prefs.disabledHostnames.includes(window.location.hostname)) return false;
   if (!amazonDetector.matches(new URL(window.location.href))) return false;
   return true;
 }
 
 function renderAll(): void {
   if (document.body === null) return;
+  // Clear before the gate, not after: toggling pause / per-site disable
+  // should remove existing pills, not leave them stale.
   clearPills(document.body);
   if (!shouldRunHere(currentPrefs)) return;
 

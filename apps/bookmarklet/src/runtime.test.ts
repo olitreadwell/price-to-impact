@@ -36,11 +36,19 @@ describe('run (with mock detector)', () => {
     expect(pillText).toContain('nets');
   });
 
-  it('does nothing when no mock-price elements are present', () => {
-    document.body.innerHTML = `<span class="a-price">$24.99</span>`;
+  it('does nothing on a page with no price-shaped text', () => {
+    document.body.innerHTML = `<p>Lorem ipsum dolor sit amet.</p>`;
 
     run();
 
     expect(document.body.querySelectorAll('[data-p2i-pill]')).toHaveLength(0);
+  });
+
+  it('falls through to generic detector on non-Amazon hosts when text has prices', () => {
+    document.body.innerHTML = `<p>Final clearance: $24.99 today only</p>`;
+
+    run();
+
+    expect(document.body.querySelectorAll('[data-p2i-pill]')).toHaveLength(1);
   });
 });

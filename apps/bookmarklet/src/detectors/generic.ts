@@ -1,20 +1,20 @@
-import { parsePriceString } from '@price-to-impact/charities';
+import { parsePriceString, toUsd } from '@price-to-impact/charities';
 import type { DetectedPrice, Detector } from '../types';
 
 /**
  * Generic last-resort detector.
  *
  * Walks text nodes, picks out anything that looks like a price token
- * (`$X.XX`, `£X.XX`, `€X,XX`, etc.) and emits one DetectedPrice per
- * unique parent element. Designed to be:
+ * (`$X.XX`, `£X.XX`, `€X,XX`, etc.), converts to USD via the static
+ * FX table, and emits one DetectedPrice per unique value and anchor.
  *
  * - **Safe to opt in everywhere**: filters out matches that look like
  *   product specs (e.g. `2.5"`, `4K`, `$0.05` unit-pricing fragments)
- *   by enforcing a minimum value and rejecting matches embedded inside
- *   `script`, `style`, `noscript`, or hidden subtrees.
- * - **Conservative on false positives**: dedupes by exact value AND by
- *   anchor element so a paragraph mentioning "$24.99" twice gets a
- *   single pill.
+ *   by enforcing a minimum USD value and rejecting matches embedded
+ *   inside `script`, `style`, `noscript`, or hidden subtrees.
+ * - **Conservative on false positives**: dedupes by exact USD value
+ *   AND by anchor element so a paragraph mentioning "$24.99" twice
+ *   gets a single pill.
  *
  * Real-world coverage is best-effort. Per-site detectors should be
  * preferred where they exist — this is the safety net.
@@ -92,23 +92,26 @@ export const genericDetector: Detector = {
 
       const parsed = parsePriceString(match[0]);
       if (parsed === null) continue;
-      if (parsed.amount < MIN_USD || parsed.amount > MAX_USD) continue;
 
-      // The generic detector only ships USD-ish prices for now — same
-      // limitation as the v1 Amazon detector, kept narrow to avoid
-      // mis-labelling without FX from a known hostname.
-      if (parsed.currency !== 'USD') continue;
+      let priceUsd: number;
+      try {
+        priceUsd = toUsd(parsed.amount, parsed.currency);
+      } catch {
+        // FX table doesn't know this currency; skip rather than mislabel.
+        continue;
+      }
+      if (priceUsd < MIN_USD || priceUsd > MAX_USD) continue;
 
       const anchor = nearestBlockAnchor(node);
       if (anchor === null) continue;
       if (seenAnchors.has(anchor)) continue;
 
-      const key = Math.round(parsed.amount * 100);
+      const key = Math.round(priceUsd * 100);
       if (seenValues.has(key)) continue;
       seenValues.add(key);
       seenAnchors.add(anchor);
 
-      results.push({ priceUsd: parsed.amount, anchorEl: anchor });
+      results.push({ priceUsd, anchorEl: anchor });
     }
 
     return results;

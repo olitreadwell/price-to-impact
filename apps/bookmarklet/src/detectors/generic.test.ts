@@ -61,9 +61,11 @@ describe('genericDetector.detect', () => {
     expect(genericDetector.detect(document.body)).toHaveLength(0);
   });
 
-  it('does not emit for non-USD currencies (no FX in this detector)', () => {
-    document.body.innerHTML = `<p>£99.00</p>`;
-    expect(genericDetector.detect(document.body)).toHaveLength(0);
+  it('converts non-USD prices via the FX table (£99 → ~$123)', () => {
+    document.body.innerHTML = `<p>Today only: £99.00 + shipping</p>`;
+    const [result] = genericDetector.detect(document.body);
+    // GBP rate is 1.25 USD/GBP, so 99 → 123.75 USD.
+    expect(result?.priceUsd).toBeCloseTo(123.75, 1);
   });
 
   it('skips text in elements with style="display:none"', () => {

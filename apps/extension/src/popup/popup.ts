@@ -20,7 +20,7 @@ function setHeaderIcon(charity: Charity | undefined): void {
   if (charity !== undefined) $<HTMLSpanElement>('header-icon').textContent = charity.icon;
 }
 
-function findCharity(id: string): Charity | undefined {
+function findCharityOrDefault(id: string): Charity | undefined {
   return charities.find((c) => c.id === id) ?? charities[0];
 }
 
@@ -28,7 +28,8 @@ async function currentTabHostname(): Promise<string | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.url === undefined) return null;
   try {
-    return new URL(tab.url).hostname.toLowerCase();
+    // URL.hostname is already lowercase per WHATWG.
+    return new URL(tab.url).hostname;
   } catch {
     return null;
   }
@@ -60,10 +61,9 @@ function withHost(hostnames: readonly string[], target: string): readonly string
 }
 
 async function init(): Promise<void> {
-  const prefs = await getPrefs();
-  const hostname = await currentTabHostname();
+  const [prefs, hostname] = await Promise.all([getPrefs(), currentTabHostname()]);
 
-  setHeaderIcon(findCharity(prefs.selectedCharityId));
+  setHeaderIcon(findCharityOrDefault(prefs.selectedCharityId));
 
   // Charity dropdown.
   const select = $<HTMLSelectElement>('charity');
@@ -72,7 +72,7 @@ async function init(): Promise<void> {
   );
   select.addEventListener('change', async () => {
     const next = await setPrefs({ selectedCharityId: select.value });
-    setHeaderIcon(findCharity(next.selectedCharityId));
+    setHeaderIcon(findCharityOrDefault(next.selectedCharityId));
     showStatus('Saved.');
   });
 

@@ -99,5 +99,5 @@ export function onPrefsChanged(handler: (prefs: Prefs) => void): () => void {
   return () => chrome.storage.onChanged.removeListener(listener);
 }
 
-/** Test seam: lets unit tests reset the persisted blob between cases. */
-export const __INTERNAL = { STORAGE_KEY, sanitise };
+/** Test-only seam: lets unit tests reset the persisted blob between cases. */
+export const __TEST_HELPERS = { STORAGE_KEY, sanitise };

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_PREFS,
-  __INTERNAL,
+  __TEST_HELPERS,
   getPrefs,
   onPrefsChanged,
   setPrefs,
 } from './storage';
 
-const { STORAGE_KEY } = __INTERNAL;
+const { STORAGE_KEY } = __TEST_HELPERS;
 
 interface StorageChange {
   newValue?: unknown;

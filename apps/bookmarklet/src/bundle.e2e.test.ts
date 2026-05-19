@@ -94,11 +94,12 @@ describe('bundled bookmarklet IIFE (non-Amazon host)', () => {
     expect(style).toContain('background:#fbbf24');
   });
 
-  it('ignores Amazon-shaped markup when the host is not amazon.com', () => {
-    document.body.innerHTML = `
-      <span class="a-price"><span class="a-offscreen">$24.99</span></span>
-    `;
+  it('falls through to generic detector on non-Amazon hosts', () => {
+    // The Amazon-shaped class is irrelevant off-Amazon; what matters is
+    // that the text "$24.99" is visible price-shaped text the generic
+    // detector picks up.
+    document.body.innerHTML = `<p>Sale: $24.99</p>`;
     executeBookmarklet(bundleSource);
-    expect(document.querySelectorAll('[data-p2i-pill]')).toHaveLength(0);
+    expect(document.querySelectorAll('[data-p2i-pill]')).toHaveLength(1);
   });
 });

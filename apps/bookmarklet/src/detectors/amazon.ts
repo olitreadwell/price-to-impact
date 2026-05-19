@@ -37,6 +37,8 @@ const TLD_TO_CURRENCY: Readonly<Record<string, Currency>> = {
 };
 
 function hostnameToCurrency(hostname: string): Currency | null {
+  // Defensive lowercase — WHATWG URL.hostname is already lowercase, but
+  // callers may pass arbitrary strings (e.g. from manifest-style hosts).
   const lower = hostname.toLowerCase();
   for (const [suffix, currency] of Object.entries(TLD_TO_CURRENCY)) {
     if (lower === suffix || lower.endsWith(`.${suffix}`)) return currency;
