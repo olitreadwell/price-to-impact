@@ -24,6 +24,7 @@ await mkdir(iconsDst, { recursive: true });
 
 const result = await Bun.build({
   entrypoints: [
+    resolve(here, 'src/background.ts'),
     resolve(here, 'src/content.ts'),
     resolve(here, 'src/popup/popup.ts'),
     resolve(here, 'src/options/options.ts'),
