@@ -67,6 +67,13 @@
       ul.sites .remove { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 6px; }
       ul.sites .remove:hover { text-decoration: underline; }
       ul.sites .empty { color: var(--muted); font-style: italic; padding: 6px 0; }
+      .ghost-btn { background: none; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; color: var(--fg); font: inherit; font-size: 12px; cursor: pointer; }
+      .ghost-btn:hover { background: var(--bg); }
+      table.history { width: 100%; border-collapse: collapse; font-size: 13px; }
+      table.history th, table.history td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+      table.history th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+      table.history td.amount { font-variant-numeric: tabular-nums; }
+      .history-empty { color: var(--muted); font-style: italic; padding: 12px 0; text-align: center; }
       footer { margin-top: 32px; color: var(--muted); font-size: 12px; }
       footer a { color: var(--muted); }
       #status { color: var(--muted); font-size: 12px; min-height: 1.2em; margin-top: 8px; }
@@ -96,6 +103,20 @@
     <h2>Disabled sites</h2>
     <div class="card">
       <ul class="sites" id="sites-list"></ul>
+    </div>
+
+    <h2>Intended donations</h2>
+    <div class="card">
+      <p style="margin: 0 0 8px; color: var(--muted); font-size: 13px;">
+        Recorded when you click a pill. We can't verify completion
+        across origins, so this is intent — what you set out to give,
+        not what landed at the charity.
+      </p>
+      <div class="row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div id="history-total" style="font-weight: 500;">Total intended: $0.00 across 0 donations.</div>
+        <button id="history-clear" type="button" class="ghost-btn">Clear history</button>
+      </div>
+      <div id="history-table"></div>
     </div>
 
     <h2>About</h2>

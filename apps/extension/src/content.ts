@@ -32,10 +32,18 @@ import {
 } from '@price-to-impact/charities';
 import { amazonDetector } from '@price-to-impact/bookmarklet/detectors/amazon';
 import { clearPills, renderPill } from '@price-to-impact/bookmarklet/render';
-import { DEFAULT_PREFS, getPrefs, onPrefsChanged, setPrefs, type Prefs } from './storage';
+import {
+  DEFAULT_PREFS,
+  getPrefs,
+  onPrefsChanged,
+  setPrefs,
+  type HistoryEntry,
+  type Prefs,
+} from './storage';
 
 const RENDER_DEBOUNCE_MS = 250;
 const THRESHOLD_DATA_ATTR = 'data-p2i-threshold-cents';
+const PRICE_DATA_ATTR = 'data-p2i-price-usd';
 
 let currentPrefs: Prefs = DEFAULT_PREFS;
 let observer: MutationObserver | null = null;
@@ -110,12 +118,6 @@ function renderOnePill({ priceUsd, anchorEl, charity, thresholdMet }: RenderOneP
       href: donateUrlForAmount(charity, thresholdUsd),
       title: `Round-up jar full — 1-click donate $${thresholdUsd.toFixed(2)} to ${charity.name}`,
     });
-    // Tag the newly-inserted pill so the click handler can decrement
-    // the jar by the right amount before the browser navigates away.
-    const pill = anchorEl.nextElementSibling;
-    if (pill instanceof HTMLAnchorElement) {
-      pill.setAttribute(THRESHOLD_DATA_ATTR, String(currentPrefs.activeThresholdCents));
-    }
   } else {
     renderPill(anchorEl, {
       label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
@@ -123,25 +125,52 @@ function renderOnePill({ priceUsd, anchorEl, charity, thresholdMet }: RenderOneP
       title: `Donate $${priceUsd.toFixed(2)} to ${charity.name}`,
     });
   }
+
+  // Tag the freshly-inserted pill with click-time metadata: the USD
+  // value drives history logging; the threshold attr (when present)
+  // drives jar decrement.
+  const pill = anchorEl.nextElementSibling;
+  if (pill instanceof HTMLAnchorElement) {
+    pill.setAttribute(PRICE_DATA_ATTR, priceUsd.toFixed(2));
+    if (thresholdMet) {
+      pill.setAttribute(THRESHOLD_DATA_ATTR, String(currentPrefs.activeThresholdCents));
+    }
+  }
 }
 
 /**
- * Delegated click handler on document.body — fires for any pill click
- * regardless of which detector rendered it. When the pill is in
- * threshold-met state, decrement the jar by the threshold amount
- * before the browser follows the anchor's href. Storage writes are
- * fire-and-forget; Chrome lets the chrome.storage write complete
- * even as the page navigates away.
+ * Delegated click handler — fires for any pill click. Logs an intent
+ * entry to history (always) and decrements the round-up jar (only if
+ * the pill carries the threshold attr). Both updates land in one
+ * setPrefs call so we don't fire two writes back-to-back. Storage
+ * writes are fire-and-forget; Chrome lets them complete across the
+ * navigation that follows the anchor href.
  */
 function handlePillClick(e: Event): void {
   const target = e.target;
   if (!(target instanceof Element)) return;
-  const pill = target.closest<HTMLAnchorElement>(`a[${THRESHOLD_DATA_ATTR}]`);
+  const pill = target.closest<HTMLAnchorElement>('a[data-p2i-pill]');
   if (pill === null) return;
+
+  const patch: Partial<Prefs> = {};
+
+  const priceUsd = Number(pill.getAttribute(PRICE_DATA_ATTR));
+  if (Number.isFinite(priceUsd) && priceUsd > 0) {
+    const entry: HistoryEntry = {
+      ts: new Date().toISOString(),
+      usd: priceUsd,
+      charityId: currentPrefs.selectedCharityId,
+      srcHost: window.location.hostname,
+    };
+    patch.history = [...currentPrefs.history, entry];
+  }
+
   const cents = Number(pill.getAttribute(THRESHOLD_DATA_ATTR));
-  if (!Number.isFinite(cents) || cents <= 0) return;
-  const { remainderAfter } = thresholdState(currentPrefs.roundupCents, cents);
-  void setPrefs({ roundupCents: remainderAfter });
+  if (Number.isFinite(cents) && cents > 0) {
+    patch.roundupCents = thresholdState(currentPrefs.roundupCents, cents).remainderAfter;
+  }
+
+  if (Object.keys(patch).length > 0) void setPrefs(patch);
 }
 
 function safeRender(): void {

@@ -14,9 +14,12 @@ import {
   onPrefsChanged,
   setPrefs,
   THRESHOLDS_CENTS,
+  type HistoryEntry,
   type Prefs,
   type ThresholdCents,
 } from '../storage';
+
+const HISTORY_VISIBLE = 50;
 
 const $ = <T extends HTMLElement>(id: string): T => {
   const el = document.getElementById(id);
@@ -144,6 +147,69 @@ function renderThresholdList(prefs: Prefs): void {
   );
 }
 
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString();
+}
+
+function charityNameById(id: string): string {
+  return charities.find((c) => c.id === id)?.name ?? id;
+}
+
+function renderHistory(prefs: Prefs): void {
+  const total = prefs.history.reduce((sum, e) => sum + e.usd, 0);
+  $<HTMLDivElement>('history-total').textContent =
+    `Total intended: $${total.toFixed(2)} across ${prefs.history.length} ${prefs.history.length === 1 ? 'donation' : 'donations'}.`;
+
+  const container = $<HTMLDivElement>('history-table');
+  if (prefs.history.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'history-empty';
+    empty.textContent = 'No donations clicked yet.';
+    container.replaceChildren(empty);
+    return;
+  }
+
+  const recent: readonly HistoryEntry[] = prefs.history
+    .slice(-HISTORY_VISIBLE)
+    .reverse();
+
+  const table = document.createElement('table');
+  table.className = 'history';
+
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  for (const text of ['Date', 'Amount', 'Charity', 'Source']) {
+    const th = document.createElement('th');
+    th.textContent = text;
+    headRow.append(th);
+  }
+  thead.append(headRow);
+  table.append(thead);
+
+  const tbody = document.createElement('tbody');
+  for (const entry of recent) {
+    const tr = document.createElement('tr');
+
+    const dateCell = document.createElement('td');
+    dateCell.textContent = formatDate(entry.ts);
+    const amountCell = document.createElement('td');
+    amountCell.className = 'amount';
+    amountCell.textContent = `$${entry.usd.toFixed(2)}`;
+    const charityCell = document.createElement('td');
+    charityCell.textContent = charityNameById(entry.charityId);
+    const srcCell = document.createElement('td');
+    srcCell.textContent = entry.srcHost;
+
+    tr.append(dateCell, amountCell, charityCell, srcCell);
+    tbody.append(tr);
+  }
+  table.append(tbody);
+
+  container.replaceChildren(table);
+}
+
 async function init(): Promise<void> {
   const prefs = await getPrefs();
   const charity = charities.find((c) => c.id === prefs.selectedCharityId) ?? charities[0];
@@ -152,6 +218,7 @@ async function init(): Promise<void> {
   renderCharityList(prefs);
   renderThresholdList(prefs);
   renderSitesList(prefs);
+  renderHistory(prefs);
 
   // Re-render on cross-tab changes so the popup and options page stay
   // in sync if both are open.
@@ -159,6 +226,13 @@ async function init(): Promise<void> {
     renderCharityList(next);
     renderThresholdList(next);
     renderSitesList(next);
+    renderHistory(next);
+  });
+
+  $<HTMLButtonElement>('history-clear').addEventListener('click', async () => {
+    if (!window.confirm('Clear all donation history? This cannot be undone.')) return;
+    await setPrefs({ history: [] });
+    showStatus('History cleared.');
   });
 }
 
