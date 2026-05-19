@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — Price → Impact</title>
+    <meta
+      name="description"
+      content="What data the Price → Impact extension collects. (Spoiler: none.)"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+      }
+      body {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 40px 24px;
+        line-height: 1.6;
+        color: #1f2937;
+        background: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { color: #f4f4f5; background: #09090b; }
+        a { color: #93c5fd; }
+      }
+      h1 { font-size: 28px; margin: 0 0 8px; }
+      h2 { font-size: 18px; margin: 28px 0 8px; }
+      .meta { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+      ul { padding-left: 22px; }
+      li { margin: 6px 0; }
+      a { color: #2563eb; }
+      code { background: rgba(127,127,127,0.15); padding: 1px 4px; border-radius: 3px; font-size: 0.92em; }
+    </style>
+  </head>
+  <body>
+    <h1>Privacy Policy</h1>
+    <p class="meta">Last updated: 2026-05-19</p>
+
+    <p>
+      The Price → Impact Chrome extension does not collect, transmit, or
+      store any personal data. Everything runs locally in your browser.
+    </p>
+
+    <h2>What the extension does</h2>
+    <ul>
+      <li>
+        Reads prices visible on the page when you visit a supported
+        shopping site (Amazon.com / .ca / .com.au / .co.uk / .de / .fr /
+        .it / .es / .nl).
+      </li>
+      <li>
+        Renders a small badge next to each price showing the equivalent
+        impact of that amount donated to a high-impact charity.
+      </li>
+      <li>
+        Stores your preferences (selected charity, paused state, per-site
+        disable list, round-up jar balance, donation-intent history) in
+        <code>chrome.storage.sync</code>. That blob is private to your
+        Chrome profile and syncs across devices you're signed into.
+      </li>
+    </ul>
+
+    <h2>What the extension does NOT do</h2>
+    <ul>
+      <li>No analytics, no telemetry, no error reporting service.</li>
+      <li>No tracking pixels, no fingerprinting, no third-party requests.</li>
+      <li>No data leaves your browser. The extension makes zero network calls.</li>
+      <li>
+        No reading of pages outside the host_permissions declared in the
+        manifest.
+      </li>
+    </ul>
+
+    <h2>Donation links</h2>
+    <p>
+      Each impact badge is a hyperlink. Clicking it opens the relevant
+      charity's donation page (Every.org or the charity's own donate
+      page) in a new tab. From that point on you are on the charity's
+      own site; their privacy practices apply, not this extension's.
+    </p>
+
+    <h2>Donation history</h2>
+    <p>
+      A click on a badge appends a local entry (timestamp, USD amount,
+      charity id, source hostname). This list lives entirely in
+      <code>chrome.storage.sync</code> and is shown in the extension's
+      options page. It's labelled "Intended donations" because we cannot
+      verify completion across origins. You can clear the history at any
+      time from the options page.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions or concerns:
+      <a
+        href="https://github.com/olitreadwell/price-to-impact/issues"
+        target="_blank"
+        rel="noopener noreferrer"
+        >open an issue on GitHub</a
+      >.
+    </p>
+  </body>
+</html>
