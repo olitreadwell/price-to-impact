@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import * as z from 'zod';
 import { charities, convertPrice, formatUnits } from '@price-to-impact/charities';
+import { BookmarkletDragLink } from '@/components/BookmarkletDragLink';
 
 const PriceInputSchema = z.object({
   amount: z.number().positive().finite().max(1_000_000),
@@ -97,6 +98,8 @@ export default function HomePage() {
             );
           })}
         </ul>
+
+        <BookmarkletDragLink />
       </div>
     </main>
   );
