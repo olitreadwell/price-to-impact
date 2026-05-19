@@ -7,8 +7,8 @@
  * via onPrefsChanged and re-renders pills.
  */
 
-import { charities, type Charity } from '@price-to-impact/charities';
-import { getPrefs, setPrefs } from '../storage';
+import { charities, formatJarProgress, type Charity } from '@price-to-impact/charities';
+import { getPrefs, onPrefsChanged, setPrefs, type Prefs } from '../storage';
 
 const $ = <T extends HTMLElement>(id: string): T => {
   const el = document.getElementById(id);
@@ -60,10 +60,31 @@ function withHost(hostnames: readonly string[], target: string): readonly string
   return hostnames.includes(target) ? hostnames : [...hostnames, target];
 }
 
+function renderJar(prefs: Prefs): void {
+  $<HTMLDivElement>('roundup-progress').textContent = formatJarProgress(
+    prefs.roundupCents,
+    prefs.activeThresholdCents,
+  );
+  const ratio = Math.min(1, prefs.roundupCents / prefs.activeThresholdCents);
+  $<HTMLDivElement>('roundup-fill').style.width = `${Math.round(ratio * 100)}%`;
+}
+
 async function init(): Promise<void> {
   const [prefs, hostname] = await Promise.all([getPrefs(), currentTabHostname()]);
 
   setHeaderIcon(findCharityOrDefault(prefs.selectedCharityId));
+  renderJar(prefs);
+
+  // Live update the jar when the content script (or any other writer)
+  // bumps roundupCents.
+  onPrefsChanged((next) => {
+    renderJar(next);
+  });
+
+  $<HTMLButtonElement>('roundup-reset').addEventListener('click', async () => {
+    await setPrefs({ roundupCents: 0 });
+    showStatus('Jar reset.');
+  });
 
   // Charity dropdown.
   const select = $<HTMLSelectElement>('charity');

@@ -9,7 +9,14 @@
  */
 
 import { charities, type Charity } from '@price-to-impact/charities';
-import { getPrefs, onPrefsChanged, setPrefs, type Prefs } from '../storage';
+import {
+  getPrefs,
+  onPrefsChanged,
+  setPrefs,
+  THRESHOLDS_CENTS,
+  type Prefs,
+  type ThresholdCents,
+} from '../storage';
 
 const $ = <T extends HTMLElement>(id: string): T => {
   const el = document.getElementById(id);
@@ -102,18 +109,55 @@ function renderSitesList(prefs: Prefs): void {
   ul.replaceChildren(...prefs.disabledHostnames.map(createSiteRow));
 }
 
+function createThresholdRow(
+  cents: ThresholdCents,
+  isSelected: boolean,
+): HTMLLabelElement {
+  const row = document.createElement('label');
+  row.className = 'charity-row';
+
+  const radio = document.createElement('input');
+  radio.type = 'radio';
+  radio.name = 'threshold';
+  radio.value = String(cents);
+  radio.checked = isSelected;
+  radio.addEventListener('change', async () => {
+    if (!radio.checked) return;
+    await setPrefs({ activeThresholdCents: cents });
+    showStatus(`Round-up threshold set to $${(cents / 100).toFixed(0)}.`);
+  });
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = `$${(cents / 100).toFixed(0)}`;
+  meta.append(name);
+
+  row.append(radio, meta);
+  return row;
+}
+
+function renderThresholdList(prefs: Prefs): void {
+  $<HTMLDivElement>('threshold-list').replaceChildren(
+    ...THRESHOLDS_CENTS.map((c) => createThresholdRow(c, c === prefs.activeThresholdCents)),
+  );
+}
+
 async function init(): Promise<void> {
   const prefs = await getPrefs();
   const charity = charities.find((c) => c.id === prefs.selectedCharityId) ?? charities[0];
   if (charity !== undefined) $<HTMLSpanElement>('header-icon').textContent = charity.icon;
 
   renderCharityList(prefs);
+  renderThresholdList(prefs);
   renderSitesList(prefs);
 
   // Re-render on cross-tab changes so the popup and options page stay
   // in sync if both are open.
   onPrefsChanged((next) => {
     renderCharityList(next);
+    renderThresholdList(next);
     renderSitesList(next);
   });
 }

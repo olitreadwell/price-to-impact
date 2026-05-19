@@ -75,6 +75,29 @@
       }
       .switch:checked { background: var(--accent); }
       .switch:checked::after { transform: translateX(14px); }
+      .progress {
+        margin-top: 6px;
+        height: 6px;
+        background: var(--border);
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--accent);
+        transition: width 200ms ease;
+      }
+      .ghost-btn {
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 4px 8px;
+        color: var(--fg);
+        font: inherit;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .ghost-btn:hover { background: var(--border); }
       footer { padding-top: 8px; border-top: 1px solid var(--border); }
       footer a, footer .linklike { color: var(--muted); text-decoration: none; font-size: 11px; }
       footer a:hover, footer .linklike:hover { text-decoration: underline; }
@@ -91,6 +114,21 @@
     <section>
       <label for="charity">Show impact in</label>
       <select id="charity" aria-label="Selected charity"></select>
+    </section>
+
+    <section id="roundup-section">
+      <div class="row">
+        <div class="label-block">
+          <div class="title">Round-up jar</div>
+          <div class="hint" id="roundup-progress">$0.00 / $10.00</div>
+        </div>
+        <button id="roundup-reset" type="button" class="ghost-btn" title="Reset the jar to $0">
+          Reset
+        </button>
+      </div>
+      <div class="progress" aria-hidden="true">
+        <div class="progress-fill" id="roundup-fill" style="width: 0%"></div>
+      </div>
     </section>
 
     <section>
