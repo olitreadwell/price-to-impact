@@ -4,17 +4,44 @@
 > charity. Ships in three shells from one shared codebase: a web
 > converter, a drag-to-bookmarks bookmarklet, and a Chrome MV3 extension.
 
+![Pill with hover card on an Amazon-style price](docs/screenshots/05-amazon-card.png)
+
+The Chrome extension annotates Amazon prices with a small chip + a
+hover card showing the charity, the math, the cost basis, and the
+round-up jar status. Click to land on a 1-click donation page with the
+amount already filled.
+
+## Surfaces
+
+<table>
+<tr>
+<td width="50%"><b>Extension popup</b><br/>charity dropdown, round-up jar progress, pause, per-site toggle</td>
+<td width="50%"><b>Web converter</b><br/>paste any currency, see impact across all four charities</td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/01-popup.png" alt="Extension popup" width="100%"></td>
+<td><img src="docs/screenshots/04-web-converter-gbp.png" alt="Web converter with GBP input" width="100%"></td>
+</tr>
+</table>
+
+<details>
+<summary><b>Options page</b> — full charity list, round-up threshold, history table, opt-in purchase prompt</summary>
+
+![Options page](docs/screenshots/02-options.png)
+
+</details>
+
 ## Status
 
 | Phase | What | Where | State |
 | --- | --- | --- | --- |
-| 0 | Charity data + math + currency parser + static FX | `packages/charities` | shipped |
-| 1 | Web converter UI (any currency input) | `apps/web` | shipped |
-| 2 | Bookmarklet (Amazon.com, MV3-safe IIFE) | `apps/bookmarklet` | shipped |
-| 3 | Chrome MV3 extension (MutationObserver) | `apps/extension` | scaffold shipped |
+| 0 | Charity data + math + currency parser + static FX + round-up math | `packages/charities` | shipped |
+| 1 | Web converter UI (any currency input, drag-link to bookmarklet) | `apps/web` | shipped |
+| 2 | Bookmarklet (Amazon TLDs, MV3-safe IIFE, hover card) | `apps/bookmarklet` | shipped |
+| 3 | Chrome MV3 extension (round-up jar, history, share, purchase prompt) | `apps/extension` | shipped |
 
-CI runs lint, typecheck, test, and build on every push to `main` and
-every PR. 62 tests across two workspaces.
+CI runs lint, typecheck, test, and build on every push and PR.
+**169 tests** across three workspaces.
 
 Cost figures are GiveWell-derived approximations. FX rates are January
 2025 ballparks. Both have `asOf` fields and `TODO(oliver)` markers for
