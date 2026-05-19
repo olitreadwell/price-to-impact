@@ -19,6 +19,19 @@
         "vitest": "^2.1.8",
       },
     },
+    "apps/extension": {
+      "name": "@price-to-impact/extension",
+      "version": "0.0.1",
+      "dependencies": {
+        "@price-to-impact/bookmarklet": "workspace:*",
+        "@price-to-impact/charities": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.1",
+        "@types/node": "^20",
+        "typescript": "^5",
+      },
+    },
     "apps/web": {
       "name": "@price-to-impact/web",
       "version": "0.0.1",
@@ -260,6 +273,8 @@
     "@price-to-impact/bookmarklet": ["@price-to-impact/bookmarklet@workspace:apps/bookmarklet"],
 
     "@price-to-impact/charities": ["@price-to-impact/charities@workspace:packages/charities"],
+
+    "@price-to-impact/extension": ["@price-to-impact/extension@workspace:apps/extension"],
 
     "@price-to-impact/web": ["@price-to-impact/web@workspace:apps/web"],
 

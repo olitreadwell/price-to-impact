@@ -14,3 +14,6 @@ next-env.d.ts
 
 # Generated bookmarklet bundle (produced by apps/bookmarklet build)
 apps/web/src/generated/
+
+# Extension build output
+apps/extension/dist/

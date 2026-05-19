@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Price → Impact",
+  "version": "0.0.1",
+  "description": "Annotates amazon.com prices with high-impact charity equivalents.",
+  "host_permissions": ["*://*.amazon.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.amazon.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "Price → Impact"
+  }
+}

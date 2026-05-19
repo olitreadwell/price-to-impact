@@ -1,0 +1,20 @@
+{
+  "name": "@price-to-impact/extension",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "echo 'no lint'",
+    "typecheck": "tsc --noEmit -p .",
+    "build": "bun run build.ts"
+  },
+  "dependencies": {
+    "@price-to-impact/bookmarklet": "workspace:*",
+    "@price-to-impact/charities": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1",
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}
