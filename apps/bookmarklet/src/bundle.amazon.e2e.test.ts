@@ -72,6 +72,41 @@ describe('bundled bookmarklet IIFE (amazon.com host)', () => {
     expect(document.querySelectorAll('[data-p2i-pill]')).toHaveLength(2);
   });
 
+  it('dedupes repeated identical prices into one pill', () => {
+    document.body.innerHTML = `
+      <span class="a-price"><span class="a-offscreen">$17.84</span></span>
+      <span class="a-price"><span class="a-offscreen">$17.84</span></span>
+      <span class="a-price"><span class="a-offscreen">$17.84</span></span>
+    `;
+    executeBookmarklet(bundleSource);
+    expect(document.querySelectorAll('[data-p2i-pill]')).toHaveLength(1);
+  });
+
+  it('skips strikethrough list prices', () => {
+    document.body.innerHTML = `
+      <span class="a-price a-text-price"><span class="a-offscreen">$39.99</span></span>
+      <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+    `;
+    executeBookmarklet(bundleSource);
+    const pills = document.querySelectorAll('[data-p2i-pill]');
+    expect(pills).toHaveLength(1);
+    // 24.99 / 5.50 ≈ 4.5 — confirms the live (not strikethrough) price was used.
+    expect(pills[0]?.textContent).toMatch(/\b4\.5 nets\b/);
+  });
+
+  it('renders pills as anchors that link to the donate page', () => {
+    document.body.innerHTML = `
+      <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+    `;
+    executeBookmarklet(bundleSource);
+
+    const pill = document.querySelector('[data-p2i-pill]') as HTMLAnchorElement | null;
+    expect(pill).not.toBeNull();
+    expect(pill?.tagName).toBe('A');
+    expect(pill?.href).toContain('againstmalaria.com');
+    expect(pill?.target).toBe('_blank');
+  });
+
   it('handles "$1,299.00" with thousands separators (≈ 236 nets)', () => {
     document.body.innerHTML = `
       <span class="a-price"><span class="a-offscreen">$1,299.00</span></span>

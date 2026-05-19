@@ -35,7 +35,10 @@ export function run(): void {
 
   for (const { priceUsd, anchorEl } of prices) {
     const units = convertPrice(priceUsd, charity);
-    const label = `${charity.icon} ≈ ${formatUnits(units, charity)}`;
-    renderPill(anchorEl, label);
+    renderPill(anchorEl, {
+      label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
+      href: charity.donateUrl,
+      title: `Donate to ${charity.name}`,
+    });
   }
 }

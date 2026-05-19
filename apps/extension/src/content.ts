@@ -20,7 +20,11 @@ function renderAll(): void {
   const prices = amazonDetector.detect(document.body);
   for (const { priceUsd, anchorEl } of prices) {
     const units = convertPrice(priceUsd, charity);
-    renderPill(anchorEl, `${charity.icon} ≈ ${formatUnits(units, charity)}`);
+    renderPill(anchorEl, {
+      label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
+      href: charity.donateUrl,
+      title: `Donate to ${charity.name}`,
+    });
   }
 }
 

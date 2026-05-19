@@ -100,6 +100,57 @@ describe('amazonDetector.detect', () => {
     expect(amazonDetector.detect(document.body)).toHaveLength(0);
   });
 
+  it('skips strikethrough list prices (.a-text-price)', () => {
+    document.body.innerHTML = `
+      <span class="a-price a-text-price">
+        <span class="a-offscreen">$39.99</span>
+      </span>
+      <span class="a-price">
+        <span class="a-offscreen">$24.99</span>
+      </span>
+    `;
+
+    const results = amazonDetector.detect(document.body);
+    expect(results).toHaveLength(1);
+    expect(results[0]?.priceUsd).toBeCloseTo(24.99);
+  });
+
+  it('skips a .a-price nested inside a strikethrough container', () => {
+    document.body.innerHTML = `
+      <span class="a-text-price">
+        <span class="a-price">
+          <span class="a-offscreen">$99.00</span>
+        </span>
+      </span>
+    `;
+
+    expect(amazonDetector.detect(document.body)).toHaveLength(0);
+  });
+
+  it('dedupes by price value — same $X.XX shown N times → one pill', () => {
+    document.body.innerHTML = `
+      <span class="a-price"><span class="a-offscreen">$17.84</span></span>
+      <span class="a-price"><span class="a-offscreen">$17.84</span></span>
+      <span class="a-price"><span class="a-offscreen">$17.84</span></span>
+      <span class="a-price"><span class="a-offscreen">$24.99</span></span>
+    `;
+
+    const results = amazonDetector.detect(document.body);
+    expect(results).toHaveLength(2);
+    expect(results.map((r) => r.priceUsd).sort()).toEqual([17.84, 24.99]);
+  });
+
+  it('dedup anchor is the first occurrence in document order', () => {
+    document.body.innerHTML = `
+      <span class="a-price" id="first"><span class="a-offscreen">$17.84</span></span>
+      <span class="a-price" id="second"><span class="a-offscreen">$17.84</span></span>
+    `;
+
+    const results = amazonDetector.detect(document.body);
+    expect(results).toHaveLength(1);
+    expect(results[0]?.anchorEl.id).toBe('first');
+  });
+
   it('anchors each result at the .a-price element for pill placement', () => {
     document.body.innerHTML = `
       <span class="a-price" id="target">

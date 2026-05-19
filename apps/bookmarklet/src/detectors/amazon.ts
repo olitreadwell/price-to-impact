@@ -59,16 +59,31 @@ function readPriceText(priceEl: Element): string | null {
   return fraction === '' ? `$${whole}` : `$${whole.replace(/[.,]$/, '')}.${fraction}`;
 }
 
+/**
+ * Skip price elements that aren't worth annotating: strikethrough
+ * "list" prices, "was" prices, and per-unit price breakdowns. These
+ * misrepresent what the user is actually paying.
+ */
+function shouldSkipPriceElement(priceEl: Element): boolean {
+  if (priceEl.classList.contains('a-text-price')) return true;
+  if (priceEl.classList.contains('a-price--strike')) return true;
+  if (priceEl.closest('.a-text-price') !== null) return true;
+  return false;
+}
+
 export const amazonDetector: Detector = {
   id: 'amazon',
   matches: isAmazonUrl,
   detect(root) {
     const results: DetectedPrice[] = [];
+    const seenPrices = new Set<number>();
     const hostname =
       typeof window === 'undefined' ? '' : window.location.hostname.toLowerCase();
     const localeCurrency = hostnameToCurrency(hostname);
 
     for (const priceEl of root.querySelectorAll('.a-price')) {
+      if (shouldSkipPriceElement(priceEl)) continue;
+
       const text = readPriceText(priceEl);
       if (text === null) continue;
       const parsed = parsePriceString(text);
@@ -81,13 +96,23 @@ export const amazonDetector: Detector = {
           ? localeCurrency
           : parsed.currency;
 
+      let priceUsd: number;
       try {
-        const priceUsd = toUsd(parsed.amount, currency);
-        results.push({ priceUsd, anchorEl: priceEl });
+        priceUsd = toUsd(parsed.amount, currency);
       } catch {
         // FX table didn't know this currency; skip rather than mislabel.
         continue;
       }
+
+      // Dedupe: the same price often appears repeatedly on a page (cart,
+      // breadcrumb, mini-buy-box, sticky header). Render one pill per
+      // unique value, anchored to the first occurrence — which is usually
+      // the most prominent one in document order.
+      const key = Math.round(priceUsd * 100);
+      if (seenPrices.has(key)) continue;
+      seenPrices.add(key);
+
+      results.push({ priceUsd, anchorEl: priceEl });
     }
     return results;
   },
