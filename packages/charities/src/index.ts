@@ -13,23 +13,17 @@ export interface Charity {
   unitPlural: string;
   costPerUnitUsd: number;
   icon: string;
-  /** Fallback "donate" page. Used when no amount-aware flow applies. */
+  /** Fallback donate page. Used when no amount-aware template applies. */
   donateUrl: string;
   /**
-   * Native donate URL with a literal `{amount}` placeholder, e.g.
-   * `https://donate.givedirectly.org/?amountChosen={amount}`. Used
-   * first when present — native flows usually skip an intermediate
-   * platform hop. The placeholder is replaced with the USD value to
-   * two decimal places.
+   * Donate URL with a literal `{amount}` placeholder, e.g.
+   * `https://donate.givedirectly.org/?amountChosen={amount}` or
+   * `https://www.every.org/<slug>?amount={amount}&...#/donate/card/confirm`.
+   * The placeholder is replaced with the USD value to two decimal
+   * places. When set, this gives the user a 1-click donate flow with
+   * the amount pre-filled.
    */
   donateUrlTemplate?: string;
-  /**
-   * Every.org nonprofit slug. Used when no `donateUrlTemplate` is set
-   * but the charity is on Every.org — pills link to
-   * `every.org/<slug>/donate?amount=<usd>` for an amount-pre-filled
-   * donate page.
-   */
-  everyOrgSlug?: string;
   source: string;
   asOf: string;
 }
@@ -39,27 +33,14 @@ const AMOUNT_PLACEHOLDER = '{amount}';
 /**
  * Build a donate URL for a specific USD amount.
  *
- * Priority:
- *   1. `donateUrlTemplate` — native flow, fewest steps for the user.
- *   2. `everyOrgSlug` — every.org universal donate page.
- *   3. `donateUrl` — charity's own (often multi-step) flow.
- *
- * Falls all the way back to `donateUrl` for non-positive or non-finite
- * amounts so a malformed price never produces a malformed URL.
+ * Uses `donateUrlTemplate` when present and amount is a finite positive
+ * number; otherwise falls back to `donateUrl`. A malformed amount never
+ * produces a malformed URL — we always emit something a browser can open.
  */
 export function donateUrlForAmount(charity: Charity, usdAmount: number): string {
-  const validAmount = Number.isFinite(usdAmount) && usdAmount > 0;
-  if (!validAmount) return charity.donateUrl;
-
-  const amount = usdAmount.toFixed(2);
-
-  if (charity.donateUrlTemplate !== undefined) {
-    return charity.donateUrlTemplate.replace(AMOUNT_PLACEHOLDER, amount);
-  }
-  if (charity.everyOrgSlug !== undefined) {
-    return `https://www.every.org/${charity.everyOrgSlug}/donate?amount=${amount}&frequency=ONCE`;
-  }
-  return charity.donateUrl;
+  if (!Number.isFinite(usdAmount) || usdAmount <= 0) return charity.donateUrl;
+  if (charity.donateUrlTemplate === undefined) return charity.donateUrl;
+  return charity.donateUrlTemplate.replace(AMOUNT_PLACEHOLDER, usdAmount.toFixed(2));
 }
 
 // TODO(oliver): figures here are GiveWell-derived approximations and need a
@@ -75,7 +56,8 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 5.5,
     icon: '🦟',
     donateUrl: 'https://www.againstmalaria.com/Donation.aspx',
-    everyOrgSlug: 'against-malaria-foundation',
+    donateUrlTemplate:
+      'https://www.every.org/against-malaria-foundation?frequency=once&amount={amount}&method=card&no_exit=1#/donate/card/confirm',
     source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
     asOf: '2025-01-01',
   },
@@ -87,7 +69,8 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 2.5,
     icon: '👁️',
     donateUrl: 'https://www.hki.org/donate/',
-    everyOrgSlug: 'helen-keller-international',
+    donateUrlTemplate:
+      'https://www.every.org/helen-keller-international?frequency=once&amount={amount}&method=card&no_exit=1#/donate/card/confirm',
     source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
     asOf: '2025-01-01',
   },

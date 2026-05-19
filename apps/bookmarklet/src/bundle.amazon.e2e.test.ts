@@ -103,8 +103,9 @@ describe('bundled bookmarklet IIFE (amazon.com host)', () => {
     const pill = document.querySelector('[data-p2i-pill]') as HTMLAnchorElement | null;
     expect(pill).not.toBeNull();
     expect(pill?.tagName).toBe('A');
-    expect(pill?.href).toContain('every.org/against-malaria-foundation/donate');
+    expect(pill?.href).toContain('every.org/against-malaria-foundation');
     expect(pill?.href).toContain('amount=24.99');
+    expect(pill?.href).toContain('#/donate/card/confirm');
     expect(pill?.target).toBe('_blank');
   });
 

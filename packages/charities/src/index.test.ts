@@ -28,20 +28,14 @@ describe('charities data', () => {
 describe('donateUrlForAmount', () => {
   const amf = charities.find((c) => c.id === 'amf')!;
 
-  it('points at every.org with the amount and ONCE frequency when slug is set', () => {
-    const url = donateUrlForAmount(amf, 24.99);
-    expect(url).toBe(
-      'https://www.every.org/against-malaria-foundation/donate?amount=24.99&frequency=ONCE',
-    );
+  it('substitutes amount into the template, two decimals', () => {
+    const charity: Charity = { ...amf, donateUrlTemplate: 'https://x.test/?a={amount}' };
+    expect(donateUrlForAmount(charity, 24)).toBe('https://x.test/?a=24.00');
+    expect(donateUrlForAmount(charity, 24.99)).toBe('https://x.test/?a=24.99');
   });
 
-  it('formats amount to two decimals', () => {
-    const url = donateUrlForAmount(amf, 24);
-    expect(url).toContain('amount=24.00');
-  });
-
-  it('falls back to charity.donateUrl when slug is absent', () => {
-    const fauxCharity: Charity = { ...amf, everyOrgSlug: undefined };
+  it('falls back to charity.donateUrl when template is absent', () => {
+    const fauxCharity: Charity = { ...amf, donateUrlTemplate: undefined };
     expect(donateUrlForAmount(fauxCharity, 24.99)).toBe(amf.donateUrl);
   });
 
@@ -52,35 +46,27 @@ describe('donateUrlForAmount', () => {
     expect(donateUrlForAmount(amf, Number.POSITIVE_INFINITY)).toBe(amf.donateUrl);
   });
 
-  it('every shipped charity has an amount-aware donate URL', () => {
+  it('every shipped charity has a donateUrlTemplate', () => {
     for (const charity of charities) {
-      const hasTemplate = charity.donateUrlTemplate !== undefined;
-      const hasEveryOrg = charity.everyOrgSlug !== undefined;
-      expect(hasTemplate || hasEveryOrg).toBe(true);
+      expect(charity.donateUrlTemplate).toBeDefined();
     }
-  });
-
-  it('donateUrlTemplate takes precedence over everyOrgSlug', () => {
-    const hybrid: Charity = {
-      ...charities[0]!,
-      donateUrlTemplate: 'https://example.test/donate?x={amount}',
-      everyOrgSlug: 'someone-else',
-    };
-    expect(donateUrlForAmount(hybrid, 5)).toBe('https://example.test/donate?x=5.00');
   });
 
   it('uses GiveDirectly native amountChosen URL', () => {
     const gd = charities.find((c) => c.id === 'give-directly')!;
-    const url = donateUrlForAmount(gd, 24.99);
-    expect(url).toBe('https://donate.givedirectly.org/?amountChosen=24.99');
+    expect(donateUrlForAmount(gd, 24.99)).toBe(
+      'https://donate.givedirectly.org/?amountChosen=24.99',
+    );
   });
 
-  it('uses the New Incentives rich every.org URL going straight to card confirm', () => {
-    const ni = charities.find((c) => c.id === 'new-incentives')!;
-    const url = donateUrlForAmount(ni, 24.99);
-    expect(url).toContain('every.org/newincentives');
-    expect(url).toContain('amount=24.99');
-    expect(url).toContain('#/donate/card/confirm');
+  it('uses the rich every.org URL pattern for AMF / HK / NI (straight to card confirm)', () => {
+    for (const id of ['amf', 'helen-keller-vita', 'new-incentives']) {
+      const c = charities.find((x) => x.id === id)!;
+      const url = donateUrlForAmount(c, 24.99);
+      expect(url).toContain('every.org/');
+      expect(url).toContain('amount=24.99');
+      expect(url).toContain('#/donate/card/confirm');
+    }
   });
 });
 

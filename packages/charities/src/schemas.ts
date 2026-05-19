@@ -40,7 +40,6 @@ export const CharitySchema = z.object({
       message: 'donateUrlTemplate must contain the {amount} placeholder',
     })
     .optional(),
-  everyOrgSlug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
   source: z.string().min(1),
   asOf: z.iso.date(),
 });
