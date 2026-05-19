@@ -7,9 +7,13 @@
     "packages/*"
   ],
   "scripts": {
+    "build:bookmarklet": "bun --filter='@price-to-impact/bookmarklet' run build",
+    "predev": "bun run build:bookmarklet",
     "dev": "bun --filter='@price-to-impact/web' run dev",
+    "prebuild": "bun run build:bookmarklet",
     "build": "bun --filter='@price-to-impact/web' run build",
     "lint": "bun --filter='*' run lint",
+    "pretypecheck": "bun run build:bookmarklet",
     "typecheck": "bun --filter='*' run typecheck",
     "test": "bun --filter='*' run test"
   }
