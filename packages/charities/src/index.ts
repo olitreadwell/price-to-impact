@@ -13,9 +13,34 @@ export interface Charity {
   unitPlural: string;
   costPerUnitUsd: number;
   icon: string;
+  /** Fallback "donate" page. Used if `everyOrgSlug` is missing. */
   donateUrl: string;
+  /**
+   * Optional Every.org nonprofit slug. When set, pills link to
+   * `every.org/<slug>/donate?amount=<usd>` so the user lands on a
+   * donate page with the exact USD amount pre-filled — closer to
+   * a 1-click flow than the charity's own multi-step donate page.
+   */
+  everyOrgSlug?: string;
   source: string;
   asOf: string;
+}
+
+/**
+ * Build a donate URL for a specific USD amount. Falls back to the
+ * charity's own donate page when there's no Every.org slug or the
+ * amount isn't a finite positive number.
+ */
+export function donateUrlForAmount(charity: Charity, usdAmount: number): string {
+  if (
+    charity.everyOrgSlug !== undefined &&
+    Number.isFinite(usdAmount) &&
+    usdAmount > 0
+  ) {
+    const amount = usdAmount.toFixed(2);
+    return `https://www.every.org/${charity.everyOrgSlug}/donate?amount=${amount}&frequency=ONCE`;
+  }
+  return charity.donateUrl;
 }
 
 // TODO(oliver): figures here are GiveWell-derived approximations and need a
@@ -31,6 +56,7 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 5.5,
     icon: '🦟',
     donateUrl: 'https://www.againstmalaria.com/Donation.aspx',
+    everyOrgSlug: 'against-malaria-foundation',
     source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
     asOf: '2025-01-01',
   },
@@ -42,6 +68,7 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 2.5,
     icon: '👁️',
     donateUrl: 'https://www.hki.org/donate/',
+    everyOrgSlug: 'helen-keller-international',
     source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
     asOf: '2025-01-01',
   },
@@ -53,6 +80,7 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 8,
     icon: '💉',
     donateUrl: 'https://www.newincentives.org/donate',
+    everyOrgSlug: 'new-incentives',
     source: 'GiveWell cost-effectiveness analysis (approximate, see givewell.org)',
     asOf: '2025-01-01',
   },
@@ -64,6 +92,7 @@ export const charities: readonly Charity[] = [
     costPerUnitUsd: 1.15,
     icon: '💵',
     donateUrl: 'https://www.givedirectly.org/give/',
+    everyOrgSlug: 'givedirectly',
     source: 'GiveDirectly published ~85% delivery efficiency (see givedirectly.org)',
     asOf: '2025-01-01',
   },

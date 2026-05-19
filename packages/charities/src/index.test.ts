@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { charities, convertPrice, formatUnits } from './index';
+import {
+  charities,
+  convertPrice,
+  donateUrlForAmount,
+  formatUnits,
+  type Charity,
+} from './index';
 import { CharitySchema } from './schemas';
 
 describe('charities data', () => {
@@ -16,6 +22,40 @@ describe('charities data', () => {
   it('every charity has a unique id', () => {
     const ids = charities.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('donateUrlForAmount', () => {
+  const amf = charities.find((c) => c.id === 'amf')!;
+
+  it('points at every.org with the amount and ONCE frequency when slug is set', () => {
+    const url = donateUrlForAmount(amf, 24.99);
+    expect(url).toBe(
+      'https://www.every.org/against-malaria-foundation/donate?amount=24.99&frequency=ONCE',
+    );
+  });
+
+  it('formats amount to two decimals', () => {
+    const url = donateUrlForAmount(amf, 24);
+    expect(url).toContain('amount=24.00');
+  });
+
+  it('falls back to charity.donateUrl when slug is absent', () => {
+    const fauxCharity: Charity = { ...amf, everyOrgSlug: undefined };
+    expect(donateUrlForAmount(fauxCharity, 24.99)).toBe(amf.donateUrl);
+  });
+
+  it('falls back when amount is non-positive or non-finite', () => {
+    expect(donateUrlForAmount(amf, 0)).toBe(amf.donateUrl);
+    expect(donateUrlForAmount(amf, -5)).toBe(amf.donateUrl);
+    expect(donateUrlForAmount(amf, Number.NaN)).toBe(amf.donateUrl);
+    expect(donateUrlForAmount(amf, Number.POSITIVE_INFINITY)).toBe(amf.donateUrl);
+  });
+
+  it('every shipped charity has an every.org slug', () => {
+    for (const charity of charities) {
+      expect(charity.everyOrgSlug).toBeDefined();
+    }
   });
 });
 

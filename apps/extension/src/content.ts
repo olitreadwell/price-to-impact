@@ -14,7 +14,12 @@
  * script re-renders immediately.
  */
 
-import { charities, convertPrice, formatUnits } from '@price-to-impact/charities';
+import {
+  charities,
+  convertPrice,
+  donateUrlForAmount,
+  formatUnits,
+} from '@price-to-impact/charities';
 import { amazonDetector } from '@price-to-impact/bookmarklet/detectors/amazon';
 import { clearPills, renderPill } from '@price-to-impact/bookmarklet/render';
 import { DEFAULT_PREFS, getPrefs, onPrefsChanged, type Prefs } from './storage';
@@ -49,8 +54,8 @@ function renderAll(): void {
     const units = convertPrice(priceUsd, charity);
     renderPill(anchorEl, {
       label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
-      href: charity.donateUrl,
-      title: `Donate to ${charity.name}`,
+      href: donateUrlForAmount(charity, priceUsd),
+      title: `Donate $${priceUsd.toFixed(2)} to ${charity.name}`,
     });
   }
 }

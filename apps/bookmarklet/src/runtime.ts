@@ -1,4 +1,10 @@
-import { charities, convertPrice, formatUnits, type Charity } from '@price-to-impact/charities';
+import {
+  charities,
+  convertPrice,
+  donateUrlForAmount,
+  formatUnits,
+  type Charity,
+} from '@price-to-impact/charities';
 import { genericDetector } from './detectors/generic';
 import { mockDetector } from './detectors/mock';
 import { pickDetectorForUrl } from './detectors/registry';
@@ -25,8 +31,8 @@ function renderResults(prices: readonly DetectedPrice[], charity: Charity): bool
     const units = convertPrice(priceUsd, charity);
     renderPill(anchorEl, {
       label: `${charity.icon} ≈ ${formatUnits(units, charity)}`,
-      href: charity.donateUrl,
-      title: `Donate to ${charity.name}`,
+      href: donateUrlForAmount(charity, priceUsd),
+      title: `Donate $${priceUsd.toFixed(2)} to ${charity.name}`,
     });
   }
   return true;

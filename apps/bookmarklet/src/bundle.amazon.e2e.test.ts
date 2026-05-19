@@ -94,7 +94,7 @@ describe('bundled bookmarklet IIFE (amazon.com host)', () => {
     expect(pills[0]?.textContent).toMatch(/\b4\.5 nets\b/);
   });
 
-  it('renders pills as anchors that link to the donate page', () => {
+  it('renders pills as anchors deep-linked to every.org with amount pre-filled', () => {
     document.body.innerHTML = `
       <span class="a-price"><span class="a-offscreen">$24.99</span></span>
     `;
@@ -103,7 +103,8 @@ describe('bundled bookmarklet IIFE (amazon.com host)', () => {
     const pill = document.querySelector('[data-p2i-pill]') as HTMLAnchorElement | null;
     expect(pill).not.toBeNull();
     expect(pill?.tagName).toBe('A');
-    expect(pill?.href).toContain('againstmalaria.com');
+    expect(pill?.href).toContain('every.org/against-malaria-foundation/donate');
+    expect(pill?.href).toContain('amount=24.99');
     expect(pill?.target).toBe('_blank');
   });
 

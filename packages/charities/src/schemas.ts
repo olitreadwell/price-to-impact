@@ -31,6 +31,7 @@ export const CharitySchema = z.object({
   costPerUnitUsd: z.number().positive().finite(),
   icon: z.string().min(1),
   donateUrl: z.url(),
+  everyOrgSlug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
   source: z.string().min(1),
   asOf: z.iso.date(),
 });
