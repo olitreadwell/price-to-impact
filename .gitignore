@@ -10,3 +10,7 @@ dist
 bun.lockb
 .vercel
 next-env.d.ts
+*.tsbuildinfo
+
+# Generated bookmarklet bundle (produced by apps/bookmarklet build)
+apps/web/src/generated/

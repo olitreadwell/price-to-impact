@@ -7,8 +7,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun --filter='@price-to-impact/web' dev",
-    "build": "bun --filter='@price-to-impact/web' build",
-    "lint": "bun --filter='*' lint"
+    "dev": "bun --filter='@price-to-impact/web' run dev",
+    "build": "bun --filter='@price-to-impact/web' run build",
+    "lint": "bun --filter='*' run lint",
+    "typecheck": "bun --filter='*' run typecheck"
   }
 }

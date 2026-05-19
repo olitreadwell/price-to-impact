@@ -9,7 +9,8 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "echo 'no lint'"
+    "lint": "echo 'no lint'",
+    "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
     "zod": "^4.4.3"
