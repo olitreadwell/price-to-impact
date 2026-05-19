@@ -37,10 +37,7 @@ function renderResults(prices: readonly DetectedPrice[], charity: Charity): bool
       card: {
         title: `${charity.icon} ${charity.name}`,
         subtitle: `$${priceUsd.toFixed(2)} ≈ ${unitsLabel}`,
-        meta: [
-          `$${charity.costPerUnitUsd.toFixed(2)} per ${charity.unit}`,
-          `Source: ${charity.source} (as of ${charity.asOf})`,
-        ],
+        meta: [`$${charity.costPerUnitUsd.toFixed(2)} per ${charity.unit} · as of ${charity.asOf}`],
         cta: `Click to donate $${priceUsd.toFixed(2)} →`,
       },
     });

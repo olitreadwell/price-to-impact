@@ -110,17 +110,16 @@ interface RenderOnePillArgs {
 }
 
 function buildCardMeta(charity: Charity, priceUsd: number): string[] {
+  // Card stays tight: cost basis + freshness, jar status when non-zero.
+  // Full source attribution lives in the options page.
   const meta = [
-    `$${charity.costPerUnitUsd.toFixed(2)} per ${charity.unit}`,
-    `Source: ${charity.source} (as of ${charity.asOf})`,
+    `$${charity.costPerUnitUsd.toFixed(2)} per ${charity.unit} · as of ${charity.asOf}`,
   ];
   if (currentPrefs.roundupCents > 0) {
     meta.push(
       `Round-up jar: ${formatJarProgress(currentPrefs.roundupCents, currentPrefs.activeThresholdCents)}`,
     );
   }
-  // Reference priceUsd so the param isn't unused (future per-price
-  // meta lines like "+12¢ to the jar" land here).
   void priceUsd;
   return meta;
 }
