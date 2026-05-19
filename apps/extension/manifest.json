@@ -3,6 +3,12 @@
   "name": "Price → Impact",
   "version": "0.0.1",
   "description": "Annotates Amazon prices with high-impact charity equivalents.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["storage"],
   "host_permissions": [
     "*://*.amazon.com/*",
     "*://*.amazon.com.au/*",
@@ -36,6 +42,11 @@
     "open_in_tab": true
   },
   "action": {
-    "default_title": "Price → Impact"
+    "default_title": "Price → Impact",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
   }
 }

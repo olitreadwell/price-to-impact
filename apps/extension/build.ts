@@ -7,15 +7,19 @@
  *   dist/manifest.json
  *   dist/content.js
  *   dist/options.html
+ *   dist/icons/icon-{16,48,128}.png
  */
 
-import { copyFile, mkdir } from 'node:fs/promises';
+import { copyFile, mkdir, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const here = new URL('.', import.meta.url).pathname;
 const distDir = resolve(here, 'dist');
+const iconsSrc = resolve(here, 'icons');
+const iconsDst = resolve(distDir, 'icons');
 
 await mkdir(distDir, { recursive: true });
+await mkdir(iconsDst, { recursive: true });
 
 const result = await Bun.build({
   entrypoints: [resolve(here, 'src/content.ts')],
@@ -35,7 +39,12 @@ if (!result.success) {
 await copyFile(resolve(here, 'manifest.json'), resolve(distDir, 'manifest.json'));
 await copyFile(resolve(here, 'src/options.html'), resolve(distDir, 'options.html'));
 
+for (const icon of await readdir(iconsSrc)) {
+  if (icon.endsWith('.png')) {
+    await copyFile(resolve(iconsSrc, icon), resolve(iconsDst, icon));
+  }
+}
+
 const [output] = result.outputs;
 const size = output === undefined ? 0 : output.size;
-const kb = (size / 1024).toFixed(1);
-console.log(`✓ Extension built (${kb} KB content.js) → ${distDir}`);
+console.log(`✓ Extension built (${(size / 1024).toFixed(1)} KB content.js + icons) → ${distDir}`);
