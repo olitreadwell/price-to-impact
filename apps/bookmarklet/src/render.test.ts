@@ -89,6 +89,21 @@ describe('renderPill', () => {
     expect(outerClicks).toBe(0);
   });
 
+  it.each([
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:foo',
+    'not a url at all',
+    '',
+  ])('refuses to render with unsafe href %s', (badHref) => {
+    const target = document.createElement('span');
+    document.body.append(target);
+
+    renderPill(target, { label: 'x', href: badHref });
+
+    expect(target.nextElementSibling).toBeNull();
+  });
+
   it('does not mistake an unrelated sibling for a pill', () => {
     const target = document.createElement('span');
     const sibling = document.createElement('span');

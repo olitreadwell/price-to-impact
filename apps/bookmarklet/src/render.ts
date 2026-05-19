@@ -33,6 +33,21 @@ function ownerDoc(el: Element): Document {
   return el.ownerDocument ?? document;
 }
 
+/**
+ * Defense in depth: reject any href that isn't `http://` or `https://`.
+ * Today every charity donateUrl is a trusted hardcoded https string, but
+ * if that data ever flows from outside the codebase a `javascript:` URL
+ * here would become an XSS sink. Cheaper to validate at the boundary.
+ */
+function isSafeHttpUrl(href: string): boolean {
+  try {
+    const url = new URL(href);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 /** Options for {@link renderPill}. */
 export interface PillOptions {
   /** Visible label, e.g. `🦟 ≈ 1.8 nets`. */
@@ -51,6 +66,8 @@ export interface PillOptions {
  */
 export function renderPill(target: Element, options: PillOptions): void {
   const { label, href, title } = options;
+  if (!isSafeHttpUrl(href)) return;
+
   const existing = target.nextElementSibling;
   if (existing instanceof HTMLAnchorElement && existing.hasAttribute(PILL_DATA_ATTR)) {
     existing.textContent = label;

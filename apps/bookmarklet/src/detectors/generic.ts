@@ -20,20 +20,36 @@ import type { DetectedPrice, Detector } from '../types';
  * preferred where they exist — this is the safety net.
  */
 
-const PRICE_RE = /(?:[\$£€]|US\$|NZ\$|CA\$|AU\$|USD|GBP|EUR|NZD|CAD|AUD)\s?-?\d[\d., ]*\d|\d+(?:[.,]\d{1,2})?\s?(?:USD|GBP|EUR|NZD|CAD|AUD)/i;
+// First alt: explicit currency *prefix*, then a number with optional
+// trailing-digit so single-digit prices like "$5" match. Second alt:
+// number followed by a currency *suffix* token.
+const PRICE_RE = /(?:[\$£€]|US\$|NZ\$|CA\$|AU\$|USD|GBP|EUR|NZD|CAD|AUD)\s?-?\d[\d., ]*\d?|\d+(?:[.,]\d{1,2})?\s?(?:USD|GBP|EUR|NZD|CAD|AUD)/i;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'CODE', 'PRE']);
 
 const MIN_USD = 0.5; // below this is almost certainly noise / unit price
 const MAX_USD = 100_000; // hard cap to keep the FX result sane
 
-function isVisible(el: Element): boolean {
+/** Minimum length of a text node we'll bother regex-scanning. */
+const MIN_TEXT_LEN = 2;
+/**
+ * Maximum length of a text node we'll regex-scan. Long text nodes are
+ * usually article copy where a stray "$24.99" is meta, not a real
+ * price, and a long node would dominate the per-tick cost.
+ */
+const MAX_TEXT_LEN = 200;
+
+/**
+ * Cheap visibility check — only rules out the obvious hidden cases (the
+ * `hidden` attribute and inline `display:none`). We deliberately do not
+ * call getComputedStyle here: every text-node ancestor would trigger a
+ * layout flush. Anything more accurate belongs in a higher-fidelity
+ * detector if we ever need one.
+ */
+function notObviouslyHidden(el: Element): boolean {
   if (!(el instanceof HTMLElement)) return true;
   if (el.hidden) return false;
-  // Conservative: don't compute getComputedStyle on every candidate.
-  // Skip the obvious "display:none" inline cases.
-  const inlineDisplay = el.style.display;
-  return inlineDisplay !== 'none';
+  return el.style.display !== 'none';
 }
 
 function nearestBlockAnchor(node: Node): Element | null {
@@ -55,7 +71,7 @@ function collectTextNodes(node: Node, out: Text[]): void {
     return;
   }
   if (SKIP_TAGS.has(node.tagName)) return;
-  if (!isVisible(node)) return;
+  if (!notObviouslyHidden(node)) return;
   for (const child of Array.from(node.childNodes)) collectTextNodes(child, out);
 }
 
@@ -75,7 +91,7 @@ export const genericDetector: Detector = {
 
     for (const node of textNodes) {
       const text = node.nodeValue ?? '';
-      if (text.length < 2 || text.length > 200) continue;
+      if (text.length < MIN_TEXT_LEN || text.length > MAX_TEXT_LEN) continue;
       const match = text.match(PRICE_RE);
       if (match === null) continue;
 

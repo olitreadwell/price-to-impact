@@ -71,15 +71,31 @@ function shouldSkipPriceElement(priceEl: Element): boolean {
   return false;
 }
 
+/**
+ * Cache the locale currency lookup per page. The MutationObserver in the
+ * extension content script calls `detect` many times per page navigation;
+ * the hostname only changes on full navigations, not on observer ticks.
+ */
+let cachedHostname: string | null = null;
+let cachedLocaleCurrency: Currency | null = null;
+
+function currentLocaleCurrency(): Currency | null {
+  if (typeof window === 'undefined') return null;
+  const hostname = window.location.hostname.toLowerCase();
+  if (hostname !== cachedHostname) {
+    cachedHostname = hostname;
+    cachedLocaleCurrency = hostnameToCurrency(hostname);
+  }
+  return cachedLocaleCurrency;
+}
+
 export const amazonDetector: Detector = {
   id: 'amazon',
   matches: isAmazonUrl,
   detect(root) {
     const results: DetectedPrice[] = [];
     const seenPrices = new Set<number>();
-    const hostname =
-      typeof window === 'undefined' ? '' : window.location.hostname.toLowerCase();
-    const localeCurrency = hostnameToCurrency(hostname);
+    const localeCurrency = currentLocaleCurrency();
 
     for (const priceEl of root.querySelectorAll('.a-price')) {
       if (shouldSkipPriceElement(priceEl)) continue;

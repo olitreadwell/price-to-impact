@@ -76,8 +76,9 @@
       .switch:checked { background: var(--accent); }
       .switch:checked::after { transform: translateX(14px); }
       footer { padding-top: 8px; border-top: 1px solid var(--border); }
-      footer a { color: var(--muted); text-decoration: none; font-size: 11px; }
-      footer a:hover { text-decoration: underline; }
+      footer a, footer .linklike { color: var(--muted); text-decoration: none; font-size: 11px; }
+      footer a:hover, footer .linklike:hover { text-decoration: underline; }
+      .linklike { background: none; border: none; padding: 0; cursor: pointer; font: inherit; }
       #status { color: var(--muted); font-size: 11px; margin-top: 6px; min-height: 1.2em; }
     </style>
   </head>
@@ -114,7 +115,7 @@
 
     <footer>
       <div id="status"></div>
-      <a id="options-link" href="#">Options</a> ·
+      <button id="options-link" type="button" class="linklike">Options</button> ·
       <a id="privacy-link" href="https://github.com/olitreadwell/price-to-impact/blob/main/apps/web/src/app/privacy/page.tsx" target="_blank" rel="noopener">Privacy</a> ·
       <a id="project-link" href="https://github.com/olitreadwell/price-to-impact" target="_blank" rel="noopener">Source</a>
     </footer>

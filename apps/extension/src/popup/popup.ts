@@ -87,9 +87,8 @@ async function init(): Promise<void> {
     });
   }
 
-  // Options link.
-  $<HTMLAnchorElement>('options-link').addEventListener('click', (e) => {
-    e.preventDefault();
+  // Options button.
+  $<HTMLButtonElement>('options-link').addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
 }

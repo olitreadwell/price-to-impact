@@ -66,12 +66,10 @@ function renderCharityList(prefs: Prefs): void {
 function renderSitesList(prefs: Prefs): void {
   const ul = $<HTMLUListElement>('sites-list');
   if (prefs.disabledHostnames.length === 0) {
-    ul.replaceChildren(
-      Object.assign(document.createElement('li'), {
-        className: 'empty',
-        textContent: 'No sites are currently disabled.',
-      }),
-    );
+    const empty = document.createElement('li');
+    empty.className = 'empty';
+    empty.textContent = 'No sites are currently disabled.';
+    ul.replaceChildren(empty);
     return;
   }
   ul.replaceChildren(

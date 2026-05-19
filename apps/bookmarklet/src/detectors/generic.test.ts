@@ -21,6 +21,13 @@ describe('genericDetector.detect', () => {
     expect(results[0]?.anchorEl.id).toBe('anchor');
   });
 
+  it('matches single-digit prefixed prices (regression: $5)', () => {
+    document.body.innerHTML = `<p>Special offer: $5 today only</p>`;
+    const results = genericDetector.detect(document.body);
+    expect(results).toHaveLength(1);
+    expect(results[0]?.priceUsd).toBeCloseTo(5);
+  });
+
   it('dedupes the same price appearing twice in a paragraph', () => {
     document.body.innerHTML = `<p>$24.99 — also $24.99 for premium members</p>`;
     expect(genericDetector.detect(document.body)).toHaveLength(1);

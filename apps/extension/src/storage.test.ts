@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_PREFS,
-  PREFS_VERSION,
   __INTERNAL,
   getPrefs,
   onPrefsChanged,
@@ -77,7 +76,6 @@ describe('getPrefs', () => {
 
   it('reads back what was persisted', async () => {
     fakeChrome.seed({
-      version: PREFS_VERSION,
       selectedCharityId: 'helen-keller-vita',
       paused: true,
       disabledHostnames: ['ebay.com'],
@@ -105,6 +103,12 @@ describe('getPrefs', () => {
 
   it('lowercases disabledHostnames', async () => {
     fakeChrome.seed({ disabledHostnames: ['EBAY.com', 'Etsy.COM'] });
+    const prefs = await getPrefs();
+    expect(prefs.disabledHostnames).toEqual(['ebay.com', 'etsy.com']);
+  });
+
+  it('dedupes disabledHostnames (case-insensitively)', async () => {
+    fakeChrome.seed({ disabledHostnames: ['ebay.com', 'eBay.com', 'EBAY.COM', 'etsy.com'] });
     const prefs = await getPrefs();
     expect(prefs.disabledHostnames).toEqual(['ebay.com', 'etsy.com']);
   });

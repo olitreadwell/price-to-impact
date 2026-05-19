@@ -2,27 +2,23 @@ import { charities, convertPrice, formatUnits } from '@price-to-impact/charities
 import { mockDetector } from './detectors/mock';
 import { pickDetectorForUrl } from './detectors/registry';
 import { clearPills, renderPill } from './render';
-import type { Detector } from './types';
-
-/**
- * Bookmarklet entry. The registry holds site-specific + generic
- * detectors; the mock detector is appended last so the "preview on the
- * web converter page" affordance still fires when `data-p2i-mock-price`
- * attributes are present.
- */
-function pickDetector(url: URL): Detector | null {
-  const registered = pickDetectorForUrl(url);
-  if (registered !== null) return registered;
-  return mockDetector.detect(document.body).length > 0 ? mockDetector : null;
-}
 
 /**
  * Bookmarklet entry point. Idempotent: calling `run` twice replaces stale
  * pills rather than stacking duplicates.
+ *
+ * Detector selection: try the registry (Amazon, generic, etc.) first. If
+ * nothing matches by URL, fall back to the mock detector — it only emits
+ * on opt-in `data-p2i-mock-price` markers, so it's a no-op on real
+ * sites and lets the web app preview itself.
+ *
+ * Charity: the bookmarklet is a single inline `javascript:` URL so it
+ * has no access to `chrome.storage.sync`. Always uses `charities[0]`
+ * (AMF). Users wanting a different charity should install the extension.
  */
 export function run(): void {
-  const detector = pickDetector(new URL(window.location.href));
-  if (detector === null) return;
+  const url = new URL(window.location.href);
+  const detector = pickDetectorForUrl(url) ?? mockDetector;
 
   const charity = charities[0];
   if (charity === undefined) return;

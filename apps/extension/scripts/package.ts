@@ -51,5 +51,5 @@ await new Promise<void>((res, reject) => {
   proc.on('exit', (code) => (code === 0 ? res() : reject(new Error(`zip exited ${code}`))));
 });
 
-const stat = await Bun.file(zipPath).size;
-console.log(`✓ Packaged: ${zipPath} (${(stat / 1024).toFixed(1)} KB)`);
+const zipBytes = Bun.file(zipPath).size;
+console.log(`✓ Packaged: ${zipPath} (${(zipBytes / 1024).toFixed(1)} KB)`);

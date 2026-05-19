@@ -34,6 +34,7 @@ function shouldRunHere(prefs: Prefs): boolean {
 }
 
 function renderAll(): void {
+  if (document.body === null) return;
   clearPills(document.body);
   if (!shouldRunHere(currentPrefs)) return;
 
@@ -53,11 +54,12 @@ function renderAll(): void {
 }
 
 function safeRender(): void {
+  if (document.body === null) return;
   observer?.disconnect();
   try {
     renderAll();
   } finally {
-    if (observer !== null) {
+    if (observer !== null && document.body !== null) {
       observer.observe(document.body, { childList: true, subtree: true });
     }
   }
@@ -72,7 +74,16 @@ function scheduleRender(): void {
 }
 
 async function boot(): Promise<void> {
-  currentPrefs = await getPrefs();
+  // Storage may be unavailable mid-reinstall or in an unusual profile —
+  // fall back to defaults rather than aborting the whole content script.
+  try {
+    currentPrefs = await getPrefs();
+  } catch (err) {
+    console.warn('[price-to-impact] failed to read prefs, using defaults:', err);
+    currentPrefs = DEFAULT_PREFS;
+  }
+
+  if (document.body === null) return;
 
   // Initial render once the content script wakes (document_idle).
   safeRender();
