@@ -7,7 +7,7 @@
  * so callers never have to handle "first run".
  */
 
-import { CurrencySchema, type Currency } from '@price-to-impact/charities';
+import { isCurrency, type Currency } from '@price-to-impact/charities';
 
 /** Bumped when the schema changes in a way that needs migration. */
 export const PREFS_VERSION = 1 as const;
@@ -41,8 +41,7 @@ function sanitise(raw: unknown): Prefs {
   const overrides: Record<string, Currency> = {};
   if (partial.hostnameCurrencyOverrides && typeof partial.hostnameCurrencyOverrides === 'object') {
     for (const [host, cur] of Object.entries(partial.hostnameCurrencyOverrides)) {
-      const parsed = CurrencySchema.safeParse(cur);
-      if (parsed.success) overrides[host.toLowerCase()] = parsed.data;
+      if (isCurrency(cur)) overrides[host.toLowerCase()] = cur;
     }
   }
   return {

@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  CharitySchema,
-  charities,
-  convertPrice,
-  formatUnits,
-} from './index';
+import { charities, convertPrice, formatUnits } from './index';
+import { CharitySchema } from './schemas';
 
 describe('charities data', () => {
   it('is non-empty', () => {

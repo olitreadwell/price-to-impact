@@ -1,18 +1,20 @@
-import * as z from 'zod';
-
 /**
- * Currencies the parser recognises. Add new entries to {@link CURRENCY_TOKENS}
- * to extend support.
+ * Currencies the parser recognises. The runtime list lives here so the
+ * type stays in sync with what the parser actually accepts. Validators
+ * (e.g. for persisted user prefs) can use {@link isCurrency} below.
+ *
+ * Adding a currency: extend this tuple, then add a matching entry in
+ * {@link CURRENCY_TOKENS} and in `fx.ts`'s rate table.
  */
-export const CurrencySchema = z.enum([
-  'USD',
-  'GBP',
-  'EUR',
-  'NZD',
-  'CAD',
-  'AUD',
-]);
-export type Currency = z.infer<typeof CurrencySchema>;
+export const CURRENCIES = ['USD', 'GBP', 'EUR', 'NZD', 'CAD', 'AUD'] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
+/** Runtime type guard — replaces the Zod schema in hot paths. */
+export function isCurrency(value: unknown): value is Currency {
+  return (
+    typeof value === 'string' && (CURRENCIES as readonly string[]).includes(value)
+  );
+}
 
 /** A successfully parsed monetary value. */
 export interface ParsedPrice {

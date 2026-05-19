@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { CurrencySchema } from './parsePrice';
+import { CURRENCIES } from './parsePrice';
 import { fxRates, getFxRate, toUsd } from './fx';
+import { FxRateSchema } from './schemas';
 
 describe('fxRates', () => {
   it('covers every Currency the parser recognises', () => {
-    const currencies = CurrencySchema.options;
-    for (const currency of currencies) {
+    for (const currency of CURRENCIES) {
       expect(fxRates.find((r) => r.currency === currency)).toBeDefined();
+    }
+  });
+
+  it('every entry validates against FxRateSchema', () => {
+    for (const rate of fxRates) {
+      expect(() => FxRateSchema.parse(rate)).not.toThrow();
     }
   });
 

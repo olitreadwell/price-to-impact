@@ -1,32 +1,28 @@
-import * as z from 'zod';
-import { CurrencySchema, type Currency } from './parsePrice';
+import type { Currency } from './parsePrice';
 
 /**
  * Approximate FX rate. Each rate expresses how many USD one unit of
  * `currency` buys. The values are quoted with an `asOf` date so the UI
  * can surface staleness — they are not live and not authoritative.
  */
-export const FxRateSchema = z.object({
-  currency: CurrencySchema,
-  usdPerUnit: z.number().positive().finite(),
-  asOf: z.iso.date(),
-  source: z.string().min(1),
-});
-export type FxRate = z.infer<typeof FxRateSchema>;
+export interface FxRate {
+  currency: Currency;
+  usdPerUnit: number;
+  asOf: string;
+  source: string;
+}
 
 // TODO(oliver): refresh before any production launch. Pull from a trusted
 // daily-rate source or an FX API. asOf is the staleness signal.
-export const fxRates: readonly FxRate[] = z
-  .array(FxRateSchema)
-  .min(1)
-  .parse([
-    { currency: 'USD', usdPerUnit: 1.0, asOf: '2025-01-01', source: 'parity' },
-    { currency: 'GBP', usdPerUnit: 1.25, asOf: '2025-01-01', source: 'approximate, see xe.com' },
-    { currency: 'EUR', usdPerUnit: 1.08, asOf: '2025-01-01', source: 'approximate, see xe.com' },
-    { currency: 'NZD', usdPerUnit: 0.57, asOf: '2025-01-01', source: 'approximate, see xe.com' },
-    { currency: 'CAD', usdPerUnit: 0.7, asOf: '2025-01-01', source: 'approximate, see xe.com' },
-    { currency: 'AUD', usdPerUnit: 0.64, asOf: '2025-01-01', source: 'approximate, see xe.com' },
-  ]);
+// Shape is validated by the corresponding Zod schema in tests (./schemas).
+export const fxRates: readonly FxRate[] = [
+  { currency: 'USD', usdPerUnit: 1.0, asOf: '2025-01-01', source: 'parity' },
+  { currency: 'GBP', usdPerUnit: 1.25, asOf: '2025-01-01', source: 'approximate, see xe.com' },
+  { currency: 'EUR', usdPerUnit: 1.08, asOf: '2025-01-01', source: 'approximate, see xe.com' },
+  { currency: 'NZD', usdPerUnit: 0.57, asOf: '2025-01-01', source: 'approximate, see xe.com' },
+  { currency: 'CAD', usdPerUnit: 0.7, asOf: '2025-01-01', source: 'approximate, see xe.com' },
+  { currency: 'AUD', usdPerUnit: 0.64, asOf: '2025-01-01', source: 'approximate, see xe.com' },
+];
 
 const RATES_BY_CURRENCY: Map<Currency, FxRate> = new Map(
   fxRates.map((rate) => [rate.currency, rate] as const),
