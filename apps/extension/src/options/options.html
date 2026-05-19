@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Price → Impact — Options</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #1f2937;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --card: #f9fafb;
+        --accent: #fbbf24;
+        --danger: #dc2626;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #09090b;
+          --fg: #f4f4f5;
+          --muted: #a1a1aa;
+          --border: #27272a;
+          --card: #18181b;
+        }
+      }
+      body {
+        font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        margin: 0;
+        padding: 32px 24px;
+        max-width: 720px;
+        margin-inline: auto;
+        line-height: 1.5;
+        font-size: 14px;
+      }
+      h1 { font-size: 22px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+      h1 .icon { font-size: 24px; }
+      .subtitle { color: var(--muted); margin: 0 0 24px; font-size: 13px; }
+      h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 24px 0 8px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+      }
+      .charity-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 100ms;
+      }
+      .charity-row:hover { background: var(--bg); }
+      .charity-row input[type="radio"] { margin-top: 4px; }
+      .charity-row .meta { flex: 1; }
+      .charity-row .name { font-weight: 600; }
+      .charity-row .cost { color: var(--muted); font-size: 12px; }
+      .charity-row .source { color: var(--muted); font-size: 12px; margin-top: 4px; }
+      .charity-row .icon { font-size: 20px; }
+      ul.sites { list-style: none; padding: 0; margin: 0; }
+      ul.sites li { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+      ul.sites li:last-child { border-bottom: none; }
+      ul.sites .remove { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 6px; }
+      ul.sites .remove:hover { text-decoration: underline; }
+      ul.sites .empty { color: var(--muted); font-style: italic; padding: 6px 0; }
+      footer { margin-top: 32px; color: var(--muted); font-size: 12px; }
+      footer a { color: var(--muted); }
+      #status { color: var(--muted); font-size: 12px; min-height: 1.2em; margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <h1><span class="icon" id="header-icon">🦟</span>Price → Impact</h1>
+    <p class="subtitle">
+      Annotates supported shopping sites with the equivalent impact in
+      high-impact charity. Configurations sync across your Chrome
+      profile.
+    </p>
+
+    <h2>Charity</h2>
+    <div class="card" id="charity-list"></div>
+
+    <h2>Disabled sites</h2>
+    <div class="card">
+      <ul class="sites" id="sites-list"></ul>
+    </div>
+
+    <h2>About</h2>
+    <div class="card">
+      <p style="margin: 0 0 8px;">
+        Cost figures are GiveWell-derived approximations. FX rates are
+        January 2025 ballparks. Both are visible alongside each charity
+        and carry an <code>asOf</code> date.
+      </p>
+      <p style="margin: 0;">
+        <a href="https://github.com/olitreadwell/price-to-impact" target="_blank" rel="noopener">Source code</a>
+        ·
+        <a href="https://github.com/olitreadwell/price-to-impact/blob/main/docs/architecture.md" target="_blank" rel="noopener">Architecture</a>
+      </p>
+    </div>
+
+    <div id="status"></div>
+
+    <footer>
+      Settings are stored in <code>chrome.storage.sync</code> — they
+      follow you across signed-in Chrome instances. No analytics, no
+      telemetry.
+    </footer>
+
+    <script src="options.js"></script>
+  </body>
+</html>

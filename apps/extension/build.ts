@@ -6,9 +6,8 @@
  * "Load unpacked"):
  *   dist/manifest.json
  *   dist/content.js
- *   dist/popup.js
- *   dist/popup.html
- *   dist/options.html
+ *   dist/popup.js + popup.html
+ *   dist/options.js + options.html
  *   dist/icons/icon-{16,48,128}.png
  */
 
@@ -27,6 +26,7 @@ const result = await Bun.build({
   entrypoints: [
     resolve(here, 'src/content.ts'),
     resolve(here, 'src/popup/popup.ts'),
+    resolve(here, 'src/options/options.ts'),
   ],
   outdir: distDir,
   format: 'iife',
@@ -42,8 +42,8 @@ if (!result.success) {
 }
 
 await copyFile(resolve(here, 'manifest.json'), resolve(distDir, 'manifest.json'));
-await copyFile(resolve(here, 'src/options.html'), resolve(distDir, 'options.html'));
 await copyFile(resolve(here, 'src/popup/popup.html'), resolve(distDir, 'popup.html'));
+await copyFile(resolve(here, 'src/options/options.html'), resolve(distDir, 'options.html'));
 
 for (const icon of await readdir(iconsSrc)) {
   if (icon.endsWith('.png')) {
