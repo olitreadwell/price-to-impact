@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -44,14 +44,14 @@ jobs:
         run: bun --filter='@price-to-impact/extension' run package
 
       - name: Upload zip as workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: p2i-extension-${{ steps.ver.outputs.version }}
           path: apps/extension/releases/*.zip
           if-no-files-found: error
 
       - name: Attach zip to the GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: apps/extension/releases/*.zip
           fail_on_unmatched_files: true
