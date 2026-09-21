@@ -16,10 +16,10 @@
   },
   "devDependencies": {
     "@types/bun": "^1.1",
-    "@types/chrome": "^0.0.270",
-    "@types/node": "^20",
-    "happy-dom": "^15",
-    "typescript": "^5",
-    "vitest": "^2.1.8"
+    "@types/chrome": "^0.3.0",
+    "@types/node": "^26",
+    "happy-dom": "^20",
+    "typescript": "^7",
+    "vitest": "^5.0.1"
   }
 }
