@@ -1,0 +1,31 @@
+name: Dependabot release-age sweep
+
+# A Dependabot PR whose releases were younger than MIN_AGE_DAYS when it opened
+# never gets auto-merge from the open event alone. This daily sweep re-checks
+# every open Dependabot PR so those mature into auto-merge on their own.
+on:
+  schedule:
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sweep:
+    name: Enable auto-merge for matured updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sweep open Dependabot PRs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MIN_AGE_DAYS: 3
+          REQUIRE_GREEN_CHECKS: 'true'
+        run: |
+          for url in $(gh pr list --state open --app dependabot --json url -q '.[].url'); do
+            node scripts/dependabot-auto-merge.mjs "$url" || echo "sweep: error on $url"
+          done
