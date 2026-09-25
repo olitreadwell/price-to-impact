@@ -1,0 +1,37 @@
+name: Dependabot auto-merge
+
+# pull_request_target runs with the base branch's secrets so Dependabot PRs can
+# be given auto-merge. The checkout below is the base branch, and the only
+# untrusted input is the PR body, which scripts/dependabot-auto-merge.mjs reads
+# as text, so no PR code ever executes here.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    name: Auto-merge safe updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gate on update type, release age, and check status
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MIN_AGE_DAYS: 3
+          REQUIRE_GREEN_CHECKS: 'true'
+        run: node scripts/dependabot-auto-merge.mjs "$PR_URL"
