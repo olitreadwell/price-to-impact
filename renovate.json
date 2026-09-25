@@ -1,6 +1,62 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
+  "extends": ["config:recommended", ":dependencyDashboard", ":semanticCommits"],
+  "timezone": "Pacific/Auckland",
+  "schedule": ["before 9am on monday"],
+  "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 8,
+  "prHourlyLimit": 4,
+  "rangeStrategy": "bump",
+  "labels": ["dependencies"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on monday"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "automerge": true,
+    "schedule": ["at any time"]
+  },
+  "packageRules": [
+    {
+      "description": "Auto-merge patch and digest updates once checks pass. minimumReleaseAge above is the cooldown.",
+      "matchUpdateTypes": ["patch", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Auto-merge minor updates too, apart from the core-runtime group below.",
+      "matchUpdateTypes": ["minor"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Core runtime is peer-dependency-sensitive: one bump here broke a peer-dep tree and a TypeScript build. Human review even on patch.",
+      "groupName": "core runtime (manual review)",
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "next",
+        "typescript",
+        "@react-three/fiber",
+        "@react-three/drei",
+        "@react-three/postprocessing",
+        "three",
+        "@types/three"
+      ],
+      "automerge": false,
+      "prPriority": 5
+    },
+    {
+      "description": "Major updates always need a human.",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major"]
+    }
   ]
 }
