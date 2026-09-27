@@ -24,7 +24,7 @@
     "@price-to-impact/charities": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "^1.1",
+    "@types/bun": "^1.4.2",
     "@types/node": "^20",
     "happy-dom": "^20.8.9",
     "typescript": "^5",
