@@ -28,7 +28,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.4.2",
-        "@types/chrome": "^0.3.0",
+        "@types/chrome": "^0.3.4",
         "@types/node": "^20.19.43",
         "happy-dom": "^20.14.5",
         "typescript": "^5",
@@ -315,7 +315,7 @@
 
     "@types/chai": ["@types/chai@5.2.3", "", { "dependencies": { "@types/deep-eql": "*", "assertion-error": "^2.0.1" } }, "sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA=="],
 
-    "@types/chrome": ["@types/chrome@0.3.0", "", { "dependencies": { "@types/filesystem": "*", "@types/har-format": "*" } }, "sha512-HPAMKyJwUnNJdVsxgypwvIStlwRhhaLnxgEwKIB99oOcffJrC4UMeD5xseVoBwDinSkr690DCBaAtSYdK6M1qw=="],
+    "@types/chrome": ["@types/chrome@0.3.4", "", { "dependencies": { "@types/filesystem": "*", "@types/har-format": "*" } }, "sha512-dcySM5R3WAUVYFjylu6tvI4D03hPKjgAqk+tKZ/tm/vxL4mLgbnSsOEQ3J7V99qP/U3Oo9IORstJLmX2hPaDlA=="],
 
     "@types/deep-eql": ["@types/deep-eql@4.0.2", "", {}, "sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw=="],
 
